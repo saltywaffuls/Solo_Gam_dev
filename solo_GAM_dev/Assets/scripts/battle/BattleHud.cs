@@ -10,7 +10,7 @@ public class BattleHud : MonoBehaviour
     [SerializeReference] Text levelText;
     [SerializeReference] HPBar hpBar;
 
-    public void SetData(piece piece)
+    public void SetData(Piece piece)
     {
         nameText.text = piece.Base.Name;
         levelText.text = "lvl" + piece.Level;

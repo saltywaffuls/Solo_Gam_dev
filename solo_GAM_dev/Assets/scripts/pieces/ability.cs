@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ability
+public class Ability
 {
 
     //short way to make propperty does not show vars in inspector
-    public abilityBase Base { get; set; }
+    public AbilityBase Base { get; set; }
 
     public int AP { get; set; }
 
-    public ability(abilityBase pBase)
+    public Ability(AbilityBase pBase)
     {
         Base = pBase;
         AP = pBase.Ap;

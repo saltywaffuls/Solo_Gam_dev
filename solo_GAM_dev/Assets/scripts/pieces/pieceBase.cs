@@ -4,9 +4,9 @@ using UnityEngine;
 
 
 [CreateAssetMenu(fileName ="Pieces", menuName = "Pieces/Create new pieces")]
-public class pieceBase : ScriptableObject
+public class PieceBase : ScriptableObject
 {
-    [SerializeField] string name;
+    [SerializeField] string pieceName;
 
     [TextArea]
     [SerializeField] string description;
@@ -31,7 +31,7 @@ public class pieceBase : ScriptableObject
     //propertys
     public string Name
     {
-        get { return name; }
+        get { return pieceName; }
     }
 
     public string Description
@@ -99,10 +99,10 @@ public enum PieceType
 [System.Serializable]
 public class LearnableAbility
 {
-    [SerializeReference] abilityBase abilityBase;
+    [SerializeReference] AbilityBase abilityBase;
     [SerializeReference] int level;
 
-    public abilityBase AbilityBase
+    public AbilityBase AbilityBase
     {
         get { return abilityBase; }
     }

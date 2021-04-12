@@ -5,16 +5,16 @@ using UnityEngine.UI;
 
 public class BattleUnit : MonoBehaviour
 {
-    [SerializeReference] pieceBase _base;
+    [SerializeReference] PieceBase _base;
     [SerializeReference] int level;
     [SerializeReference] bool isPlayerUnit;
 
-    public piece Piece { get; set; }
+    public Piece Piece { get; set; }
 
 
     public void SetUp()
     {
-        Piece = new piece(_base, level);
+        Piece = new Piece(_base, level);
         if (isPlayerUnit)
             GetComponent<Image>().sprite = Piece.Base.BackSpriten;
         else

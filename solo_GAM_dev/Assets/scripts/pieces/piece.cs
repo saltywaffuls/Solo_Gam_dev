@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class piece
+public class Piece
 {
-   public pieceBase Base { get; set; }
+   public PieceBase Base { get; set; }
     public int Level { get; set; }
 
     public int HP { get; set; }
-    public List<ability> abilitys { get; set; }
+    public List<Ability> abilities { get; set; }
 
-    public piece(pieceBase pBase, int plevel)
+    public Piece(PieceBase pBase, int plevel)
     {
         Base = pBase;
         Level = plevel;
@@ -18,13 +18,13 @@ public class piece
 
 
         // generate abilties
-        abilitys = new List<ability>();
+        abilities = new List<Ability>();
         foreach (var ability in Base.LearnableAbilities)
         {
             if (ability.Level <= Level)
-                abilitys.Add(new ability(ability.AbilityBase));
+                abilities.Add(new Ability(ability.AbilityBase));
 
-            if (abilitys.Count >= 4)
+            if (abilities.Count >= 4)
                 break;
         }
     }

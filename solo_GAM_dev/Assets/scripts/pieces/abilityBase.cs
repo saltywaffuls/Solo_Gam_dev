@@ -4,10 +4,10 @@ using UnityEngine;
 
 
 [CreateAssetMenu(fileName = "Abilitys", menuName = "Pieces/Create new abilitys")]
-public class abilityBase : ScriptableObject
+public class AbilityBase : ScriptableObject
 {
 
-    [SerializeField] string name;
+    [SerializeField] string abilityName;
 
     [TextArea]
     [SerializeField] string description;
@@ -22,7 +22,7 @@ public class abilityBase : ScriptableObject
     //propertys
     public string Name
     {
-        get { return name; }
+        get { return abilityName; }
     }
 
     public string Description
