@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9e4dd067e0d6ca4a9674cf9b66e7ca7, type: 3}
   m_Name: black hole
   m_EditorClassIdentifier: 
-  name: Black Hole
+  abilityName: Black Hole
   description: 
   type: 0
   power: 0
