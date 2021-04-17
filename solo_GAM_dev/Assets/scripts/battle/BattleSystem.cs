@@ -48,13 +48,14 @@ public class BattleSystem : MonoBehaviour
         dialogBox.SetAbilityName(playerUnit.Piece.abilities);
 
         yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
-        yield return new WaitForSeconds(1f);
+        
 
         PlayerAction();
         
 
     }
 
+    // player turn phase fight/flee
     void PlayerAction()
     {
 
@@ -63,6 +64,7 @@ public class BattleSystem : MonoBehaviour
         dialogBox.EnableActionSelector(true);
     }
 
+    //player attack phase
     void PlayerMove()
     {
         state = BattleState.PlayerMove;
@@ -71,6 +73,70 @@ public class BattleSystem : MonoBehaviour
         dialogBox.EnableAbilitySelector(true);
     }
 
+
+    //use attack player selected
+    IEnumerator PerformPlayerAbility()
+    {
+
+        state = BattleState.Busy;
+
+        var ability = playerUnit.Piece.abilities[currentAbility];
+        yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} used {ability.Base.Name}");
+
+        
+
+        var damageDetails = enemyUnit.Piece.TakeDamage(ability, playerUnit.Piece);
+        yield return enemyhud.UpdateHP();
+        yield return ShowDamageDetails(damageDetails);
+
+        if (damageDetails.Dead)
+        {
+            yield return dialogBox.TypeDialog($"{enemyUnit.Piece.Base.Name} dead");
+        }
+        else
+        {
+            StartCoroutine(EnemyAbility());
+        }
+    }
+
+    // runs enemy attack
+    IEnumerator EnemyAbility()
+    {
+        state = BattleState.EnemyMove;
+
+        var ability = enemyUnit.Piece.GetRandomAbility();
+        yield return dialogBox.TypeDialog($"{enemyUnit.Piece.Base.Name} used {ability.Base.Name}");
+
+        
+
+        var damageDetails = playerUnit.Piece.TakeDamage(ability, enemyUnit.Piece);
+        yield return playerhud.UpdateHP();
+        yield return ShowDamageDetails(damageDetails);
+
+        if (damageDetails.Dead)
+        {
+            yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} dead");
+        }
+        else
+        {
+            PlayerAction();
+        }
+    }
+
+    //shows damage Details in dialog box
+    IEnumerator ShowDamageDetails(DamageDetails damageDetails)
+    {
+        if (damageDetails.Crit > 1f)
+            yield return dialogBox.TypeDialog("BIG DAMAGE");
+
+        if (damageDetails.TypeWeakness > 1f)
+            yield return dialogBox.TypeDialog("Weak");
+        else if (damageDetails.TypeWeakness < 1f)
+            yield return dialogBox.TypeDialog("resist");
+    }
+
+
+    // controls for what the player picked run/fight
     void HandleActionSelection()
     {
         if (Input.GetKeyDown(KeyCode.DownArrow))
@@ -101,6 +167,8 @@ public class BattleSystem : MonoBehaviour
 
     }
 
+
+    //controls for what abilty is selected
     void HandleAbilitySelection()
     {
 
@@ -126,6 +194,14 @@ public class BattleSystem : MonoBehaviour
         }
 
         dialogBox.UpdateAbilitySelection(currentAbility , playerUnit.Piece.abilities[currentAbility]);
+
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            dialogBox.EnableAbilitySelector(false);
+            dialogBox.EnableDialogText(true);
+            StartCoroutine(PerformPlayerAbility());
+        }
     }
 
 

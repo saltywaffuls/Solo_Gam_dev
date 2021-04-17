@@ -11,7 +11,7 @@ public class BattleUnit : MonoBehaviour
 
     public Piece Piece { get; set; }
 
-
+    // sets up what pices are being used
     public void SetUp()
     {
         Piece = new Piece(_base, level);

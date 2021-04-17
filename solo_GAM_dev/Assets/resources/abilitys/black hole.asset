@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   abilityName: Black Hole
   description: 
-  type: 0
-  power: 0
+  type: 2
+  power: 50
   accuracy: 0
   ap: 0

@@ -85,6 +85,7 @@ public class PieceBase : ScriptableObject
 public enum PieceType
 {
     None,
+    humen,
     Space,
     Time,
     Creation,
@@ -93,6 +94,36 @@ public enum PieceType
     Dark,
 }
 
+//what type is effective agenst other types
+public class TypeChart
+{
+    //2d arry
+    static float[][] chart =
+    {
+        // 1f = normal dmg 0.5f = 50% less damage 2 = 50% more damage
+        //                  hum spa tim cre des lig dar
+        /*hum*/new float[] {1f, 1f, 1f, 1f, 1f, 1f, 1f},
+        /*SPA*/new float[] {1f, 1f, 1f, 1f, 1f, 1f, 1f},
+        /*Tim*/new float[] {2f, 1f, 1f, 1f, 1f, 1f, 1f},
+        /*CRE*/new float[] {1f, 1f, 1f, 1f, 1f, 1f, 1f},
+        /*DES*/new float[] {1f, 1f, 1f, 1f, 1f, 1f, 1f},
+        /*LIG*/new float[] {1f, 1f, 1f, 1f, 1f, 1f, 1f},
+        /*DAR*/new float[] {1f, 1f, 1f, 1f, 1f, 1f, 1f},
+        
+    };
+
+    // gets the stats from the chart
+    public static float GetWeakness(PieceType attacktype, PieceType defensetype)
+    {
+        if (attacktype == PieceType.None || defensetype == PieceType.None)
+            return 1;
+
+        int row = (int)attacktype - 1;
+        int col = (int)defensetype - 1;
+
+        return chart[row][col];
+    }
+}
 
 
 //list of ablitys they can learn

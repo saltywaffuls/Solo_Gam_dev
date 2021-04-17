@@ -53,7 +53,7 @@ public class BattleDialogBox : MonoBehaviour
     }
 
 
-    //sets color
+    //sets color of action selector
     public void UpdateActionSelection(int selectedAction)
     {
         for (int i=0; i<actionText.Count; ++i)
@@ -67,7 +67,7 @@ public class BattleDialogBox : MonoBehaviour
         
     }
 
-    //sets color
+    //sets color of ability selcetor
     public void UpdateAbilitySelection(int selectedAbility, Ability ability)
     {
         for (int i = 0; i < abilityText.Count; ++i)
@@ -82,6 +82,7 @@ public class BattleDialogBox : MonoBehaviour
         typeText.text = ability.Base.Type.ToString();
     }
 
+    // shows ability name
     public void SetAbilityName(List<Ability> abilities)
     {
         for (int i=0; i<abilityText.Count; ++i)

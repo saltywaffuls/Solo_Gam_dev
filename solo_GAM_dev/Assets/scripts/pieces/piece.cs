@@ -49,4 +49,56 @@ public class Piece
         get { return Mathf.FloorToInt((Base.Defense * Level) / 100f) + 5; }
     }
 
+    //function that deals damage
+    public DamageDetails TakeDamage(Ability ability, Piece attacker)
+    {
+
+        // critcal hit 
+        float crit = 1f;
+        if (Random.value * 100f <= 6.25f)
+            crit = 2f;
+
+        //gets type weakness
+        float type = TypeChart.GetWeakness(ability.Base.Type, this.Base.Type1) * TypeChart.GetWeakness(ability.Base.Type, this.Base.Type2);
+
+
+        var damageDetails = new DamageDetails()
+        {
+            TypeWeakness = type,
+            Crit = crit,
+            Dead = false
+        };
+
+        // damage formula
+        float modifiers = Random.Range(0.85f, 1f) * type * crit;
+        float a = (2 * attacker.Level + 10) / 250f;
+        float d = a * ability.Base.Power * ((float)attacker.Attack / Defense) + 2;
+        int damage = Mathf.FloorToInt(d * modifiers);
+
+        //checks if its dead
+        HP -= damage;
+        if(HP <= 0)
+        {
+            HP = 0;
+            damageDetails.Dead = true;
+        }
+        return damageDetails;
+    }
+
+    //returns random ability
+    public Ability GetRandomAbility()
+    {
+        int r = Random.Range(0, abilities.Count);
+        return abilities[r];
+    }
+
+}
+
+public class DamageDetails
+{
+
+    public bool Dead { get; set; }
+    public float Crit { get; set; }
+    public float TypeWeakness { get; set; }
+
 }
