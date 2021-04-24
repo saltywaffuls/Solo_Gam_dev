@@ -1,17 +1,23 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerControler : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
 
     public float moveSpeed;
+    public LayerMask solidObjectslayer;
+    public LayerMask grassLayer;
+
+    public event Action OnEncountered;
 
     private bool isMoving;
-
     private Vector2 input;
 
-    public LayerMask solidObjectslayer;
+    
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -20,7 +26,7 @@ public class PlayerControler : MonoBehaviour
     }
 
     // Update is called once per frame
-   private void Update()
+   public void HandleUpdate()
     {
 
         if (!isMoving)
@@ -60,6 +66,8 @@ public class PlayerControler : MonoBehaviour
         transform.position = targetPos;
 
         isMoving = false;
+
+        CheckForEncounters();
     }
 
     //colition
@@ -73,5 +81,20 @@ public class PlayerControler : MonoBehaviour
         }
 
         return true;
+    }
+
+
+    //looks for encoter when hits colider
+    private void CheckForEncounters()
+    {
+        if(Physics2D.OverlapCircle(transform.position, 0.2f, grassLayer) != null)
+        {
+           if (UnityEngine.Random.Range(1, 101) <= 10)
+           {
+               // animation.SetBool("isMoving", false);
+                OnEncountered();
+                Debug.Log("enconter");
+           }
+        }
     }
 }

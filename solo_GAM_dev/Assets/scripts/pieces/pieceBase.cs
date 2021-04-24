@@ -23,6 +23,9 @@ public class PieceBase : ScriptableObject
     [SerializeField] int maxHP;
     [SerializeField] int attack;
     [SerializeField] int defense;
+    [SerializeField] int ultAttack;
+    [SerializeField] int ultDefense;
+    [SerializeField] int speed;
 
 
     [SerializeField] List<LearnableAbility> learnableAbilities;
@@ -72,6 +75,22 @@ public class PieceBase : ScriptableObject
     public int Defense
     {
         get { return defense; }
+    }
+
+    public int UltAttack
+    {
+        get { return ultAttack; }
+    
+    }
+    
+    public int UltDefense
+    {
+        get { return ultDefense; }
+    }
+    
+    public int Speed
+    {
+        get { return speed; }
     }
 
     public List<LearnableAbility> LearnableAbilities

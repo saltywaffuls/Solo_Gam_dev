@@ -50,5 +50,21 @@ public class AbilityBase : ScriptableObject
         get { return ap; }
     }
 
+    // for ultimate abilitys or in simp terms magic basd on type
+    public bool IsUltimate
+    {
+        get
+        {
+            // add new typses here 
+            if(type == PieceType.Time || type == PieceType.Destruction || type == PieceType.Dark)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
 
 }

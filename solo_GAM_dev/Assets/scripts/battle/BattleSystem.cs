@@ -16,17 +16,23 @@ public class BattleSystem : MonoBehaviour
     [SerializeReference] BattleHud enemyhud;
     [SerializeReference] BattleDialogBox dialogBox;
 
+    public event Action<bool> OnBattleOver;
+
     BattleState state;
     int currentAction;
     int currentAbility;
 
+    PieceParty playerParty;
+    Piece wildPiece;
 
-    private void Start()
+    public void StartBattle(PieceParty playerParty, Piece wildPiece)
     {
+        this.playerParty = playerParty;
+        this.wildPiece = wildPiece;
         StartCoroutine( SetUpBattle());
     }
 
-    private void Update()
+    public void HandleUpdate()
     {
         if (state == BattleState.PlayerAction)
         {
@@ -40,8 +46,8 @@ public class BattleSystem : MonoBehaviour
 
     public IEnumerator SetUpBattle()
     {
-        playerUnit.SetUp();
-        enemyUnit.SetUp();
+        playerUnit.SetUp(playerParty.GetHealthyPiece());
+        enemyUnit.SetUp(wildPiece);
         playerhud.SetData(playerUnit.Piece);
         enemyhud.SetData(enemyUnit.Piece);
 
@@ -81,6 +87,7 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.Busy;
 
         var ability = playerUnit.Piece.abilities[currentAbility];
+        ability.AP--;
         yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} used {ability.Base.Name}");
 
         
@@ -92,6 +99,11 @@ public class BattleSystem : MonoBehaviour
         if (damageDetails.Dead)
         {
             yield return dialogBox.TypeDialog($"{enemyUnit.Piece.Base.Name} dead");
+
+
+            yield return new WaitForSeconds(2f);
+            OnBattleOver(true);
+
         }
         else
         {
@@ -105,6 +117,7 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.EnemyMove;
 
         var ability = enemyUnit.Piece.GetRandomAbility();
+        ability.AP--;
         yield return dialogBox.TypeDialog($"{enemyUnit.Piece.Base.Name} used {ability.Base.Name}");
 
         
@@ -116,6 +129,30 @@ public class BattleSystem : MonoBehaviour
         if (damageDetails.Dead)
         {
             yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} dead");
+
+
+            yield return new WaitForSeconds(2f);
+
+            //sets up next unit in party
+           var nextPiece = playerParty.GetHealthyPiece();
+
+            if (nextPiece != null)
+            {
+                playerUnit.SetUp(nextPiece);
+                playerhud.SetData(nextPiece);
+
+                dialogBox.SetAbilityName(nextPiece.abilities);
+
+                yield return dialogBox.TypeDialog($" {nextPiece.Base.Name} is up next.");
+
+
+                PlayerAction();
+            }
+            else
+            {
+                OnBattleOver(false);
+            }
+
         }
         else
         {

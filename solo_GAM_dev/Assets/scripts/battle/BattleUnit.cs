@@ -5,20 +5,22 @@ using UnityEngine.UI;
 
 public class BattleUnit : MonoBehaviour
 {
-    [SerializeReference] PieceBase _base;
-    [SerializeReference] int level;
+    
     [SerializeReference] bool isPlayerUnit;
 
     public Piece Piece { get; set; }
 
     // sets up what pices are being used
-    public void SetUp()
+    public void SetUp(Piece piece)
     {
-        Piece = new Piece(_base, level);
+        Piece = piece;
         if (isPlayerUnit)
             GetComponent<Image>().sprite = Piece.Base.BackSpriten;
         else
             GetComponent<Image>().sprite = Piece.Base.FrontSprite;
+
+        //eps 12 timestamp 12:50
+        //image.color = originalColor;
     }
 
 }
