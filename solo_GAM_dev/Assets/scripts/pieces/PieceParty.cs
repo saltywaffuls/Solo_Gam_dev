@@ -7,6 +7,14 @@ public class PieceParty : MonoBehaviour
 {
     [SerializeField] List<Piece> pieces;
 
+    public List<Piece> Pieces
+    {
+        get
+        {
+            return pieces;
+        }
+    }
+
 
     private void Start()
     {

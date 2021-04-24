@@ -10,11 +10,12 @@ public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy }
 public class BattleSystem : MonoBehaviour
 {
 
-    [SerializeReference] BattleUnit playerUnit;
-    [SerializeReference] BattleUnit enemyUnit;
-    [SerializeReference] BattleHud playerhud;
-    [SerializeReference] BattleHud enemyhud;
-    [SerializeReference] BattleDialogBox dialogBox;
+    [SerializeField] BattleUnit playerUnit;
+    [SerializeField] BattleUnit enemyUnit;
+    [SerializeField] BattleHud playerhud;
+    [SerializeField] BattleHud enemyhud;
+    [SerializeField] BattleDialogBox dialogBox;
+    [SerializeField] PartyScreen partyscreen;
 
     public event Action<bool> OnBattleOver;
 
@@ -51,6 +52,8 @@ public class BattleSystem : MonoBehaviour
         playerhud.SetData(playerUnit.Piece);
         enemyhud.SetData(enemyUnit.Piece);
 
+        partyscreen.Init();
+
         dialogBox.SetAbilityName(playerUnit.Piece.abilities);
 
         yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
@@ -66,9 +69,17 @@ public class BattleSystem : MonoBehaviour
     {
 
         state = BattleState.PlayerAction;
-        StartCoroutine(dialogBox.TypeDialog("action"));
+        dialogBox.SetDialog("action");
         dialogBox.EnableActionSelector(true);
     }
+
+    //opens the party select ui
+    void OpenPartyUI()
+    {
+        partyscreen.SetPartyData(playerParty.Pieces);
+        partyscreen.gameObject.SetActive(true);
+    }
+
 
     //player attack phase
     void PlayerMove()
@@ -176,18 +187,18 @@ public class BattleSystem : MonoBehaviour
     // controls for what the player picked run/fight
     void HandleActionSelection()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            if(currentAction < 1)
-                ++currentAction;
-        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            ++currentAction;
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            --currentAction;
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+            currentAction += 2;
         else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            if (currentAction > 0)
-                --currentAction;
-        }
+            currentAction -= 2;
 
-        dialogBox.UpdateActionSelection(currentAction);
+        currentAction = Mathf.Clamp(currentAction, 0, 3);
+
+            dialogBox.UpdateActionSelection(currentAction);
 
         if (Input.GetKeyDown(KeyCode.Z))
         {
@@ -197,6 +208,15 @@ public class BattleSystem : MonoBehaviour
                 PlayerMove();
             }
             else if (currentAction == 1)
+            {
+                //inventroy
+            } 
+            else if (currentAction == 2)
+            {
+                //party
+                OpenPartyUI();
+            } 
+            else if (currentAction == 3)
             {
                 //flee
             }
@@ -210,25 +230,15 @@ public class BattleSystem : MonoBehaviour
     {
 
         if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            if (currentAbility < playerUnit.Piece.abilities.Count - 1)
-                ++currentAbility;
-        }
+            ++currentAbility;
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            if (currentAbility > 0)
-                --currentAbility;
-        }
+            --currentAbility;
         else if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            if (currentAbility < playerUnit.Piece.abilities.Count - 2)
-                currentAbility += 2;
-        }
+            currentAbility += 2;
         else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            if (currentAbility > 1)
-                currentAbility -= 2;
-        }
+            currentAbility -= 2;
+
+        currentAbility = Mathf.Clamp(currentAbility, 0, playerUnit.Piece.abilities.Count - 1);
 
         dialogBox.UpdateAbilitySelection(currentAbility , playerUnit.Piece.abilities[currentAbility]);
 
@@ -238,6 +248,12 @@ public class BattleSystem : MonoBehaviour
             dialogBox.EnableAbilitySelector(false);
             dialogBox.EnableDialogText(true);
             StartCoroutine(PerformPlayerAbility());
+        }
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            dialogBox.EnableAbilitySelector(false);
+            dialogBox.EnableDialogText(true);
+            PlayerAction();
         }
     }
 
