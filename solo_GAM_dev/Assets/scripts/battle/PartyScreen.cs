@@ -10,6 +10,7 @@ public class PartyScreen : MonoBehaviour
 
 
     PartyUI[] rosterSlots;
+    List<Piece> pieces;
 
 
     public void Init()
@@ -20,6 +21,8 @@ public class PartyScreen : MonoBehaviour
     public void SetPartyData(List<Piece> pieces)
     {
 
+        this.pieces = pieces;
+
         for (int i = 0; i < rosterSlots.Length; i++)
         {
             if (i < pieces.Count)
@@ -28,8 +31,25 @@ public class PartyScreen : MonoBehaviour
                 rosterSlots[i].gameObject.SetActive(false);
         }
 
-        messageText.text = "swap memeber";
+        messageText.text = "swap unit";
 
     }
+
+    public void UpdateUnitSelection(int selectedUnit)
+    {
+        for (int i = 0; i < pieces.Count; i++)
+        {
+            if (i == selectedUnit)
+                rosterSlots[i].SetSelected(true);
+            else
+                rosterSlots[i].SetSelected(false);
+        }
+    }
+
+    public void SetMessageText(string message)
+    {
+        messageText.text = message;
+    }
+
 
 }

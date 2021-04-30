@@ -5,15 +5,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 //defines states
-public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy }
+public enum BattleState { Start, ActionSelection, AbilitySelection, PreformAbility, Busy, PartyScreen, BattleOver }
 
 public class BattleSystem : MonoBehaviour
 {
 
     [SerializeField] BattleUnit playerUnit;
     [SerializeField] BattleUnit enemyUnit;
-    [SerializeField] BattleHud playerhud;
-    [SerializeField] BattleHud enemyhud;
     [SerializeField] BattleDialogBox dialogBox;
     [SerializeField] PartyScreen partyscreen;
 
@@ -22,6 +20,7 @@ public class BattleSystem : MonoBehaviour
     BattleState state;
     int currentAction;
     int currentAbility;
+    int currentUnit;
 
     PieceParty playerParty;
     Piece wildPiece;
@@ -35,13 +34,17 @@ public class BattleSystem : MonoBehaviour
 
     public void HandleUpdate()
     {
-        if (state == BattleState.PlayerAction)
+        if (state == BattleState.ActionSelection)
         {
             HandleActionSelection();
         }
-        else if (state == BattleState.PlayerMove)
+        else if (state == BattleState.AbilitySelection)
         {
             HandleAbilitySelection();
+        }
+        else if (state == BattleState.PartyScreen)
+        {
+            HandlePartySelection();
         }
     }
 
@@ -49,8 +52,6 @@ public class BattleSystem : MonoBehaviour
     {
         playerUnit.SetUp(playerParty.GetHealthyPiece());
         enemyUnit.SetUp(wildPiece);
-        playerhud.SetData(playerUnit.Piece);
-        enemyhud.SetData(enemyUnit.Piece);
 
         partyscreen.Init();
 
@@ -59,32 +60,42 @@ public class BattleSystem : MonoBehaviour
         yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
         
 
-        PlayerAction();
+        ActionSelection();
         
 
     }
 
     // player turn phase fight/flee
-    void PlayerAction()
+    void ActionSelection()
     {
 
-        state = BattleState.PlayerAction;
+        state = BattleState.ActionSelection;
         dialogBox.SetDialog("action");
         dialogBox.EnableActionSelector(true);
     }
 
+
+    void BattleOver(bool won)
+    {
+        state = BattleState.BattleOver;
+        OnBattleOver(won);
+    }
+
+
     //opens the party select ui
     void OpenPartyUI()
     {
+
+        state = BattleState.PartyScreen;
         partyscreen.SetPartyData(playerParty.Pieces);
         partyscreen.gameObject.SetActive(true);
     }
 
 
     //player attack phase
-    void PlayerMove()
+    void AbilitySelection()
     {
-        state = BattleState.PlayerMove;
+        state = BattleState.AbilitySelection;
         dialogBox.EnableActionSelector(false);
         dialogBox.EnableDialogText(false);
         dialogBox.EnableAbilitySelector(true);
@@ -92,83 +103,73 @@ public class BattleSystem : MonoBehaviour
 
 
     //use attack player selected
-    IEnumerator PerformPlayerAbility()
+    IEnumerator PlayerAbility()
     {
 
-        state = BattleState.Busy;
+        state = BattleState.PreformAbility;
 
         var ability = playerUnit.Piece.abilities[currentAbility];
-        ability.AP--;
-        yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} used {ability.Base.Name}");
-
+        yield return RunAbility(playerUnit, enemyUnit, ability);
         
-
-        var damageDetails = enemyUnit.Piece.TakeDamage(ability, playerUnit.Piece);
-        yield return enemyhud.UpdateHP();
-        yield return ShowDamageDetails(damageDetails);
-
-        if (damageDetails.Dead)
-        {
-            yield return dialogBox.TypeDialog($"{enemyUnit.Piece.Base.Name} dead");
-
-
-            yield return new WaitForSeconds(2f);
-            OnBattleOver(true);
-
-        }
-        else
-        {
+        //if the battle stat was not changed by RunAbility,  then go to next step
+        if (state == BattleState.PreformAbility)
             StartCoroutine(EnemyAbility());
-        }
+        
     }
 
     // runs enemy attack
     IEnumerator EnemyAbility()
     {
-        state = BattleState.EnemyMove;
+        state = BattleState.PreformAbility;
 
         var ability = enemyUnit.Piece.GetRandomAbility();
-        ability.AP--;
-        yield return dialogBox.TypeDialog($"{enemyUnit.Piece.Base.Name} used {ability.Base.Name}");
+        yield return RunAbility(enemyUnit, playerUnit, ability);
 
+        if (state == BattleState.PreformAbility)
+            ActionSelection();
         
+    }
 
-        var damageDetails = playerUnit.Piece.TakeDamage(ability, enemyUnit.Piece);
-        yield return playerhud.UpdateHP();
+    // runs the ability
+    IEnumerator RunAbility(BattleUnit sourceUnit, BattleUnit targetUnit, Ability ability)
+    {
+       
+        ability.AP--;
+        yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} used {ability.Base.Name}");
+
+        //sourceUnit.PlayAttackAnimation();
+        //yield return new WaitForSeconds(1f);
+
+        //targetUnit.PlayHitAnimation();
+        var damageDetails = targetUnit.Piece.TakeDamage(ability, sourceUnit.Piece);
+        yield return targetUnit.Hud.UpdateHP();
         yield return ShowDamageDetails(damageDetails);
 
         if (damageDetails.Dead)
         {
-            yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} dead");
-
-
+            yield return dialogBox.TypeDialog($"{targetUnit.Piece.Base.Name} dead");
+            //targetUnit.PlayDeathAnimation();
             yield return new WaitForSeconds(2f);
 
+            CheckForBattleOver(targetUnit);
+
+        }
+    }
+
+    void CheckForBattleOver(BattleUnit deadUnit)
+    {
+        if (deadUnit.IsPlayerUnit)
+        {
             //sets up next unit in party
-           var nextPiece = playerParty.GetHealthyPiece();
+            var nextPiece = playerParty.GetHealthyPiece();
 
             if (nextPiece != null)
-            {
-                playerUnit.SetUp(nextPiece);
-                playerhud.SetData(nextPiece);
-
-                dialogBox.SetAbilityName(nextPiece.abilities);
-
-                yield return dialogBox.TypeDialog($" {nextPiece.Base.Name} is up next.");
-
-
-                PlayerAction();
-            }
+                OpenPartyUI();
             else
-            {
-                OnBattleOver(false);
-            }
-
+                BattleOver(false);
         }
         else
-        {
-            PlayerAction();
-        }
+            BattleOver(true);
     }
 
     //shows damage Details in dialog box
@@ -205,7 +206,7 @@ public class BattleSystem : MonoBehaviour
             if (currentAction == 0)
             {
                 //fight
-                PlayerMove();
+                AbilitySelection();
             }
             else if (currentAction == 1)
             {
@@ -247,14 +248,77 @@ public class BattleSystem : MonoBehaviour
         {
             dialogBox.EnableAbilitySelector(false);
             dialogBox.EnableDialogText(true);
-            StartCoroutine(PerformPlayerAbility());
+            StartCoroutine(PlayerAbility());
         }
         else if (Input.GetKeyDown(KeyCode.X))
         {
             dialogBox.EnableAbilitySelector(false);
             dialogBox.EnableDialogText(true);
-            PlayerAction();
+            ActionSelection();
         }
+    }
+
+    //controls party selector
+    void HandlePartySelection()
+    {
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            ++currentUnit;
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            --currentUnit;
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+            currentUnit += 2;
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
+            currentUnit -= 2;
+
+        currentUnit = Mathf.Clamp(currentUnit, 0, playerParty.Pieces.Count - 1);
+
+        partyscreen.UpdateUnitSelection(currentUnit);
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            var selectedUnit = playerParty.Pieces[currentUnit];
+            if (selectedUnit.HP <= 0)
+            {
+                partyscreen.SetMessageText("he is no loger with us");
+                return;
+            }
+            if (selectedUnit == playerUnit.Piece)
+            {
+                partyscreen.SetMessageText("he already in the fight");
+                return;
+            }
+
+            partyscreen.gameObject.SetActive(false);
+            state = BattleState.Busy;
+            StartCoroutine(SwitchUnit(selectedUnit));
+        }
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            partyscreen.gameObject.SetActive(false);
+            ActionSelection();
+        }
+
+    }
+
+    //switches out the pices in play
+    IEnumerator SwitchUnit(Piece newPiece)
+    {
+
+        if (playerUnit.Piece.HP > 0)
+        {
+            yield return dialogBox.TypeDialog($"tagging out {playerUnit.Piece.Base.name}");
+            //playerUnit.PlayDeathAnimation();
+            yield return new WaitForSeconds(2);
+        }
+
+        playerUnit.SetUp(newPiece);
+
+        dialogBox.SetAbilityName(newPiece.abilities);
+
+        yield return dialogBox.TypeDialog($" {newPiece.Base.Name} is up next.");
+
+        AbilitySelection();
     }
 
 

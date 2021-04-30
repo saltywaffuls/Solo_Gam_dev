@@ -55,7 +55,7 @@ public class AbilityBase : ScriptableObject
     {
         get
         {
-            // add new typses here 
+            // add new  ult typses here 
             if(type == PieceType.Time || type == PieceType.Destruction || type == PieceType.Dark)
             {
                 return true;
@@ -68,3 +68,5 @@ public class AbilityBase : ScriptableObject
     }
 
 }
+
+//18 time stamp 13:22

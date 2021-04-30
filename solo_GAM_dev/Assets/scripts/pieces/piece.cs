@@ -27,10 +27,13 @@ public class Piece
 
     public int HP { get; set; }
     public List<Ability> abilities { get; set; }
+    public Dictionary<Stat, int> Stats { get; private set; }
+    public Dictionary<Stat, int> StatBoosts { get; private set; }
 
     public void Init()
     {
-        HP = MaxHP;
+        
+        
 
 
         // generate abilties
@@ -43,44 +46,80 @@ public class Piece
             if (abilities.Count >= 4)
                 break;
         }
+
+        CalculateStates();
+        HP = MaxHP;
+
+        StatBoosts = new Dictionary<Stat, int>()
+        {
+            {Stat.Attack, 0},
+            {Stat.Defense, 0},
+            {Stat.UltAttack, 0},
+            {Stat.UltDefense, 0},
+            {Stat.Speed, 0},
+        };
+    }
+
+    void CalculateStates()
+    {
+        Stats = new Dictionary<Stat, int>();
+        Stats.Add(Stat.Attack, Mathf.FloorToInt((Base.Attack * Level) / 100f) + 5 );
+        Stats.Add(Stat.Defense, Mathf.FloorToInt((Base.Defense * Level) / 100f) + 5 );
+        Stats.Add(Stat.UltAttack, Mathf.FloorToInt((Base.UltAttack * Level) / 100f) + 5 );
+        Stats.Add(Stat.UltDefense, Mathf.FloorToInt((Base.UltDefense * Level) / 100f) + 5 );
+        Stats.Add(Stat.Speed, Mathf.FloorToInt((Base.Speed * Level) / 100f) + 5 );
+
+        MaxHP =  Mathf.FloorToInt((Base.MaxHP * Level) / 100f) + 10;
+    }
+
+    int GetStat(Stat stat)
+    {
+        int statVal = Stats[stat];
+
+        //todo stat boost
+        int boost = StatBoosts[stat];
+        var boostValues = new float[] { 1f, 1.5f, 2f, 2.5f, 3f, 3.5f, 4f };
+
+        if (boost >= 0)
+            statVal =  Mathf.FloorToInt(statVal * boostValues[boost]);
+        else
+            statVal = Mathf.FloorToInt(statVal / boostValues[-boost]);
+
+        return statVal;
     }
 
     //property level formulas
     public int Attack
     {
-                  //base attack mutpled by the level divided by 100 add five
-        get { return Mathf.FloorToInt((Base.Attack * Level) / 100f) + 5 ; }
+        //base attack mutpled by the level divided by 100 add five
+        get { return GetStat(Stat.Attack); }
     }
 
 
-    public int MaxHP
-    {
-        
-        get { return Mathf.FloorToInt((Base.MaxHP * Level) / 100f) + 10; }
-    }
+    public int MaxHP { get; private set; }
 
     public int Defense
     {
         
-        get { return Mathf.FloorToInt((Base.Defense * Level) / 100f) + 5; }
+        get { return GetStat(Stat.Defense); }
     }
 
     public int UltAttack
     {
         //base attack mutpled by the level divided by 100 add five
-        get { return Mathf.FloorToInt((Base.UltAttack * Level) / 100f) + 5; }
+        get { return GetStat(Stat.UltAttack); }
     }
 
     public int UltDefense
     {
         //base attack mutpled by the level divided by 100 add five
-        get { return Mathf.FloorToInt((Base.UltDefense * Level) / 100f) + 5; }
+        get { return GetStat(Stat.UltDefense); }
     }
 
     public int Speed
     {
         //base attack mutpled by the level divided by 100 add five
-        get { return Mathf.FloorToInt((Base.Speed * Level) / 100f) + 5; }
+        get { return GetStat(Stat.Speed); }
     }
 
     //function that deals damage

@@ -113,6 +113,15 @@ public enum PieceType
     Dark,
 }
 
+public enum Stat
+{
+    Attack,
+    Defense,
+    UltAttack,
+    UltDefense,
+    Speed
+}
+
 //what type is effective agenst other types
 public class TypeChart
 {

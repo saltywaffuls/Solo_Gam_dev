@@ -5,8 +5,26 @@ using UnityEngine.UI;
 
 public class BattleUnit : MonoBehaviour
 {
+
+    [SerializeField] bool isPlayerUnit;
+    [SerializeField] BattleHud hud;
     
-    [SerializeReference] bool isPlayerUnit;
+
+    public bool IsPlayerUnit
+    {
+        get
+        {
+            return isPlayerUnit;
+        }
+    }
+
+    public BattleHud Hud
+    {
+        get
+        {
+            return hud;
+        }
+    }
 
     public Piece Piece { get; set; }
 
@@ -18,6 +36,8 @@ public class BattleUnit : MonoBehaviour
             GetComponent<Image>().sprite = Piece.Base.BackSpriten;
         else
             GetComponent<Image>().sprite = Piece.Base.FrontSprite;
+
+        hud.SetData(piece);
 
         //eps 12 timestamp 12:50
         //image.color = originalColor;
