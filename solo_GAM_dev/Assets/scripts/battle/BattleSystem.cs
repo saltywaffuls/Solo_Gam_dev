@@ -141,11 +141,29 @@ public class BattleSystem : MonoBehaviour
         //yield return new WaitForSeconds(1f);
 
         //targetUnit.PlayHitAnimation();
-        var damageDetails = targetUnit.Piece.TakeDamage(ability, sourceUnit.Piece);
-        yield return targetUnit.Hud.UpdateHP();
-        yield return ShowDamageDetails(damageDetails);
 
-        if (damageDetails.Dead)
+        //checks to see if the move is a status effect or not
+        if(ability.Base.Category == AbilityCategory.Status)
+        {
+            //cheacks to see what type of effect
+            var effects = ability.Base.Effects;
+            if (effects.Boosts != null)
+            {
+                if (ability.Base.Target == AbilityTarget.Self)
+                    sourceUnit.Piece.ApplyBoost(effects.Boosts);
+                else
+                    targetUnit.Piece.ApplyBoost(effects.Boosts);
+            }
+        }
+        else
+        {
+            var damageDetails = targetUnit.Piece.TakeDamage(ability, sourceUnit.Piece);
+            yield return targetUnit.Hud.UpdateHP();
+            yield return ShowDamageDetails(damageDetails);
+        }
+
+        //cheeks to see if its dead
+        if (targetUnit.Piece.HP <= 0)
         {
             yield return dialogBox.TypeDialog($"{targetUnit.Piece.Base.Name} dead");
             //targetUnit.PlayDeathAnimation();

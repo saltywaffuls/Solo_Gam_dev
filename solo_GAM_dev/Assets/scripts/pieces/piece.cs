@@ -88,13 +88,26 @@ public class Piece
         return statVal;
     }
 
+    //apply sate buff/debuff by 6 levels
+    public void ApplyBoost(List<StatBoost> statBoosts)
+    {
+        foreach (var statBoost in statBoosts)
+        {
+            var stat = statBoost.stat;
+            var boost = statBoost.boost;
+
+            StatBoosts[stat] = Mathf.Clamp (StatBoosts[stat] + boost, -6, 6);
+
+            Debug.Log($"{stat} has been bossted to {StatBoosts[stat]}");
+        }
+    }
+
     //property level formulas
     public int Attack
     {
         //base attack mutpled by the level divided by 100 add five
         get { return GetStat(Stat.Attack); }
     }
-
 
     public int MaxHP { get; private set; }
 
@@ -143,8 +156,8 @@ public class Piece
         };
 
         //checks if the move is ult or not
-       float attack = (ability.Base.IsUltimate) ? attacker.UltAttack : attacker.Attack;
-        float defense = (ability.Base.IsUltimate) ? UltDefense : Defense;
+       float attack = (ability.Base.Category == AbilityCategory.Ultimate) ? attacker.UltAttack : attacker.Attack;
+        float defense = (ability.Base.Category == AbilityCategory.Ultimate) ? UltDefense : Defense;
 
         // damage formula
         float modifiers = Random.Range(0.85f, 1f) * type * crit;

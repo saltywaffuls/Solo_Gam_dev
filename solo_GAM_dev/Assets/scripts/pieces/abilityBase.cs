@@ -18,6 +18,9 @@ public class AbilityBase : ScriptableObject
     [SerializeField] int power;
     [SerializeField] int accuracy;
     [SerializeField] int ap;
+    [SerializeField] AbilityCategory category;
+    [SerializeField] AbilityEffects effects;
+    [SerializeField] AbilityTarget target;
 
     //propertys
     public string Name
@@ -50,23 +53,47 @@ public class AbilityBase : ScriptableObject
         get { return ap; }
     }
 
-    // for ultimate abilitys or in simp terms magic basd on type
-    public bool IsUltimate
-    {
-        get
-        {
-            // add new  ult typses here 
-            if(type == PieceType.Time || type == PieceType.Destruction || type == PieceType.Dark)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+    public AbilityCategory Category {
+        get { return category; }
+    }
+
+    public AbilityEffects Effects{
+        get { return effects; }
+    }
+    
+    public AbilityTarget Target{
+        get { return target; }
     }
 
 }
 
-//18 time stamp 13:22
+[System.Serializable]
+public class AbilityEffects
+{
+    [SerializeField] List<StatBoost> boosts;
+
+    public List<StatBoost> Boosts
+    {
+        get { return boosts; }
+    }
+}
+
+// class shows list in inspecter
+[System.Serializable]
+public class StatBoost 
+{
+    public Stat stat;
+    public int boost;
+}
+
+
+// what type of ability it is
+public enum AbilityCategory
+{
+    Physical, Ultimate, Status
+}
+
+public enum AbilityTarget
+{
+    Foe, Self
+}
