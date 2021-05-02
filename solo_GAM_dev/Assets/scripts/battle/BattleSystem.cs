@@ -58,11 +58,20 @@ public class BattleSystem : MonoBehaviour
         dialogBox.SetAbilityName(playerUnit.Piece.abilities);
 
         yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
+
+
+        ChooseFirstTurn();
         
 
-        ActionSelection();
-        
+    }
 
+    //picks you goes first based of speed stat
+    void ChooseFirstTurn()
+    {
+        if (playerUnit.Piece.Speed >= enemyUnit.Piece.Speed)
+            ActionSelection();
+        else
+            StartCoroutine(EnemyAbility());
     }
 
     // player turn phase fight/flee
@@ -78,6 +87,7 @@ public class BattleSystem : MonoBehaviour
     void BattleOver(bool won)
     {
         state = BattleState.BattleOver;
+        playerParty.Pieces.ForEach(p => p.OnBattleOver());
         OnBattleOver(won);
     }
 
@@ -133,7 +143,15 @@ public class BattleSystem : MonoBehaviour
     // runs the ability
     IEnumerator RunAbility(BattleUnit sourceUnit, BattleUnit targetUnit, Ability ability)
     {
-       
+
+        bool canRunAbility = sourceUnit.Piece.OnBeforeAbility();
+        if (!canRunAbility)
+        {
+            yield return ShowStatusChanges(sourceUnit.Piece);
+            yield break;
+        }
+        yield return ShowStatusChanges(sourceUnit.Piece);
+
         ability.AP--;
         yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} used {ability.Base.Name}");
 
@@ -145,15 +163,7 @@ public class BattleSystem : MonoBehaviour
         //checks to see if the move is a status effect or not
         if(ability.Base.Category == AbilityCategory.Status)
         {
-            //cheacks to see what type of effect
-            var effects = ability.Base.Effects;
-            if (effects.Boosts != null)
-            {
-                if (ability.Base.Target == AbilityTarget.Self)
-                    sourceUnit.Piece.ApplyBoost(effects.Boosts);
-                else
-                    targetUnit.Piece.ApplyBoost(effects.Boosts);
-            }
+            yield return RunAbilityEffects(ability, sourceUnit.Piece, targetUnit.Piece);
         }
         else
         {
@@ -172,6 +182,30 @@ public class BattleSystem : MonoBehaviour
             CheckForBattleOver(targetUnit);
 
         }
+
+        //statuses like burn(DOTS) will hurt after a turn
+        sourceUnit.Piece.OnAfterTurn();
+        yield return ShowStatusChanges(sourceUnit.Piece);
+        yield return sourceUnit.Hud.UpdateHP();
+        if (sourceUnit.Piece.HP <= 0)
+        {
+            yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} dead");
+            //targetUnit.PlayDeathAnimation();
+            yield return new WaitForSeconds(2f);
+
+            CheckForBattleOver(sourceUnit);
+
+        }
+    }
+
+    //shows stat message in dialog box
+    IEnumerator ShowStatusChanges(Piece piece)
+    {
+        while (piece.statusChanges.Count > 0)
+        {
+            var message = piece.statusChanges.Dequeue();
+            yield return dialogBox.TypeDialog(message);
+        }
     }
 
     void CheckForBattleOver(BattleUnit deadUnit)
@@ -188,6 +222,30 @@ public class BattleSystem : MonoBehaviour
         }
         else
             BattleOver(true);
+    }
+
+    // runs debuff & buffs
+    IEnumerator RunAbilityEffects(Ability ability, Piece source, Piece target)
+    {
+        //cheacks to see what type of status boost effect
+        var effects = ability.Base.Effects;
+        if (effects.Boosts != null)
+        {
+            if (ability.Base.Target == AbilityTarget.Self)
+                source.ApplyBoost(effects.Boosts);
+            else
+                target.ApplyBoost(effects.Boosts);
+        }
+
+        // cheecks to see what type of status condtion effect
+        if(effects.Status != ConditionID.none)
+        {
+            target.SetStatus(effects.Status);
+        }
+
+        //calls function to show after applying stat
+        yield return ShowStatusChanges(source);
+        yield return ShowStatusChanges(target);
     }
 
     //shows damage Details in dialog box
@@ -322,9 +380,10 @@ public class BattleSystem : MonoBehaviour
     //switches out the pices in play
     IEnumerator SwitchUnit(Piece newPiece)
     {
-
+        bool currentPieceDead = true;
         if (playerUnit.Piece.HP > 0)
         {
+            currentPieceDead = false;
             yield return dialogBox.TypeDialog($"tagging out {playerUnit.Piece.Base.name}");
             //playerUnit.PlayDeathAnimation();
             yield return new WaitForSeconds(2);
@@ -336,7 +395,10 @@ public class BattleSystem : MonoBehaviour
 
         yield return dialogBox.TypeDialog($" {newPiece.Base.Name} is up next.");
 
-        AbilitySelection();
+        if (currentPieceDead)
+            ChooseFirstTurn();
+        else
+            AbilitySelection();
     }
 
 

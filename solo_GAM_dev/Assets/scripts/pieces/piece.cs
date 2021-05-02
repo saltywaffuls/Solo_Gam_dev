@@ -29,13 +29,16 @@ public class Piece
     public List<Ability> abilities { get; set; }
     public Dictionary<Stat, int> Stats { get; private set; }
     public Dictionary<Stat, int> StatBoosts { get; private set; }
+    public Condition status { get; private set; }
+    public int statusTIme { get; set; }
+
+    public Queue<string> statusChanges { get; private set; } = new Queue<string>();
+
+    public bool HPChange { get; set; }
 
     public void Init()
     {
         
-        
-
-
         // generate abilties
         abilities = new List<Ability>();
         foreach (var ability in Base.LearnableAbilities)
@@ -50,16 +53,10 @@ public class Piece
         CalculateStates();
         HP = MaxHP;
 
-        StatBoosts = new Dictionary<Stat, int>()
-        {
-            {Stat.Attack, 0},
-            {Stat.Defense, 0},
-            {Stat.UltAttack, 0},
-            {Stat.UltDefense, 0},
-            {Stat.Speed, 0},
-        };
+        ResetStatBoost();
     }
 
+    //math and formula for stats
     void CalculateStates()
     {
         Stats = new Dictionary<Stat, int>();
@@ -70,6 +67,19 @@ public class Piece
         Stats.Add(Stat.Speed, Mathf.FloorToInt((Base.Speed * Level) / 100f) + 5 );
 
         MaxHP =  Mathf.FloorToInt((Base.MaxHP * Level) / 100f) + 10;
+    }
+
+    // resets stats back to orignal
+    void ResetStatBoost()
+    {
+        StatBoosts = new Dictionary<Stat, int>()
+        {
+            {Stat.Attack, 0},
+            {Stat.Defense, 0},
+            {Stat.UltAttack, 0},
+            {Stat.UltDefense, 0},
+            {Stat.Speed, 0},
+        };
     }
 
     int GetStat(Stat stat)
@@ -97,6 +107,11 @@ public class Piece
             var boost = statBoost.boost;
 
             StatBoosts[stat] = Mathf.Clamp (StatBoosts[stat] + boost, -6, 6);
+
+            if (boost > 0)
+                statusChanges.Enqueue($"{Base.Name}'s {stat} has overcome its limit ");
+            else
+                statusChanges.Enqueue($"{Base.Name}'s {stat} has fell below its limit ");
 
             Debug.Log($"{stat} has been bossted to {StatBoosts[stat]}");
         }
@@ -165,14 +180,28 @@ public class Piece
         float d = a * ability.Base.Power * ((float)attack / defense) + 2;
         int damage = Mathf.FloorToInt(d * modifiers);
 
-        //checks if its dead
-        HP -= damage;
-        if(HP <= 0)
-        {
-            HP = 0;
-            damageDetails.Dead = true;
-        }
+        UpdateHP(damage);
+
         return damageDetails;
+    }
+
+    public void UpdateHP(int damage)
+    {
+        HP = Mathf.Clamp(HP - damage, 0, MaxHP);
+        HPChange = true;
+    }
+
+    // sets the status effect
+    public void SetStatus(ConditionID conditionID)
+    {
+        status = ConditionDB.Conditions[conditionID];
+        status?.OnStart?.Invoke(this);
+        statusChanges.Enqueue($"{Base.Name} {status.StartMessage}");
+    }
+
+    public void CureStatus()
+    {
+        status = null;
     }
 
     //returns random ability for enemy
@@ -180,6 +209,26 @@ public class Piece
     {
         int r = Random.Range(0, abilities.Count);
         return abilities[r];
+    }
+
+    public bool OnBeforeAbility()
+    {
+        if (status?.OnBeforeAbility != null)
+        {
+            return status.OnBeforeAbility(this);
+        }
+
+        return true;
+    }
+
+    public void OnAfterTurn()
+    {
+        status?.OnAfterTurn?.Invoke(this);
+    }
+
+    public void OnBattleOver()
+    {
+        ResetStatBoost();
     }
 
 }

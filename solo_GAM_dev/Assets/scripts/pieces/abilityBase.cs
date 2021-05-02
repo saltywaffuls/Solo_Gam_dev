@@ -71,11 +71,18 @@ public class AbilityBase : ScriptableObject
 public class AbilityEffects
 {
     [SerializeField] List<StatBoost> boosts;
+    [SerializeField] ConditionID status;
 
     public List<StatBoost> Boosts
     {
         get { return boosts; }
     }
+
+    public ConditionID Status
+    {
+        get { return status; }
+    }
+
 }
 
 // class shows list in inspecter

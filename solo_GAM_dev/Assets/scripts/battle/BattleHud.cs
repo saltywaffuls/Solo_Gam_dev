@@ -25,7 +25,12 @@ public class BattleHud : MonoBehaviour
     // updates HP bar
     public IEnumerator UpdateHP()
     {
-       yield return hpBar.SetHPSmooth((float)_piece.HP / _piece.MaxHP);
+        if (_piece.HPChange)
+        {
+            yield return hpBar.SetHPSmooth((float)_piece.HP / _piece.MaxHP);
+            _piece.HPChange = false;
+        }
+       
     }
 
 }
