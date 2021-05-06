@@ -30,11 +30,15 @@ public class Piece
     public Dictionary<Stat, int> Stats { get; private set; }
     public Dictionary<Stat, int> StatBoosts { get; private set; }
     public Condition status { get; private set; }
-    public int statusTIme { get; set; }
+    public int statusTime { get; set; }
+    public Condition VolatileStatus { get; private set; }
+    public int VolatileStatusTime { get; set; }
+
 
     public Queue<string> statusChanges { get; private set; } = new Queue<string>();
 
     public bool HPChange { get; set; }
+    public event System.Action OnStatusChanged;
 
     public void Init()
     {
@@ -54,6 +58,8 @@ public class Piece
         HP = MaxHP;
 
         ResetStatBoost();
+        status = null;
+        VolatileStatus = null;
     }
 
     //math and formula for stats
@@ -66,7 +72,7 @@ public class Piece
         Stats.Add(Stat.UltDefense, Mathf.FloorToInt((Base.UltDefense * Level) / 100f) + 5 );
         Stats.Add(Stat.Speed, Mathf.FloorToInt((Base.Speed * Level) / 100f) + 5 );
 
-        MaxHP =  Mathf.FloorToInt((Base.MaxHP * Level) / 100f) + 10;
+        MaxHP =  Mathf.FloorToInt((Base.MaxHP * Level) / 100f) + 10 + Level;
     }
 
     // resets stats back to orignal
@@ -79,6 +85,8 @@ public class Piece
             {Stat.UltAttack, 0},
             {Stat.UltDefense, 0},
             {Stat.Speed, 0},
+            {Stat.Accuracy, 0},
+            {Stat.Evasion, 0},
         };
     }
 
@@ -194,14 +202,37 @@ public class Piece
     // sets the status effect
     public void SetStatus(ConditionID conditionID)
     {
+
+        //prevents status from applying if alredy on
+        if (status != null) return;
+
         status = ConditionDB.Conditions[conditionID];
         status?.OnStart?.Invoke(this);
         statusChanges.Enqueue($"{Base.Name} {status.StartMessage}");
+        OnStatusChanged?.Invoke();
     }
 
     public void CureStatus()
     {
         status = null;
+        OnStatusChanged?.Invoke();
+    }
+
+    // sets the volatile status effect
+    public void SetVolatileStatus(ConditionID conditionID)
+    {
+
+        //prevents status from applying if alredy on
+        if (VolatileStatus != null) return;
+
+        VolatileStatus = ConditionDB.Conditions[conditionID];
+        VolatileStatus?.OnStart?.Invoke(this);
+        statusChanges.Enqueue($"{Base.Name} {VolatileStatus.StartMessage}");
+    }
+
+    public void CureVolatileStatus()
+    {
+        VolatileStatus = null;
     }
 
     //returns random ability for enemy
@@ -213,21 +244,31 @@ public class Piece
 
     public bool OnBeforeAbility()
     {
+        bool canPreformAbility = true;
         if (status?.OnBeforeAbility != null)
         {
-            return status.OnBeforeAbility(this);
+            if (!status.OnBeforeAbility(this))
+                canPreformAbility = false;
         }
 
-        return true;
+        if (VolatileStatus?.OnBeforeAbility != null)
+        {
+            if (!VolatileStatus.OnBeforeAbility(this))
+                canPreformAbility = false;
+        }
+
+        return canPreformAbility;
     }
 
     public void OnAfterTurn()
     {
         status?.OnAfterTurn?.Invoke(this);
+        VolatileStatus?.OnAfterTurn?.Invoke(this);
     }
 
     public void OnBattleOver()
     {
+        VolatileStatus = null;
         ResetStatBoost();
     }
 

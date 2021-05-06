@@ -104,7 +104,7 @@ public class PieceBase : ScriptableObject
 public enum PieceType
 {
     None,
-    humen,
+    Humen,
     Space,
     Time,
     Creation,
@@ -119,7 +119,11 @@ public enum Stat
     Defense,
     UltAttack,
     UltDefense,
-    Speed
+    Speed,
+
+    //these 2 are not actual stats, they are used to boost abilityAccuracy
+    Accuracy,
+    Evasion
 }
 
 //what type is effective agenst other types

@@ -148,6 +148,7 @@ public class BattleSystem : MonoBehaviour
         if (!canRunAbility)
         {
             yield return ShowStatusChanges(sourceUnit.Piece);
+            yield return sourceUnit.Hud.UpdateHP();
             yield break;
         }
         yield return ShowStatusChanges(sourceUnit.Piece);
@@ -155,32 +156,50 @@ public class BattleSystem : MonoBehaviour
         ability.AP--;
         yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} used {ability.Base.Name}");
 
-        //sourceUnit.PlayAttackAnimation();
-        //yield return new WaitForSeconds(1f);
-
-        //targetUnit.PlayHitAnimation();
-
-        //checks to see if the move is a status effect or not
-        if(ability.Base.Category == AbilityCategory.Status)
+        if (CheckIfAbilityHit(ability, sourceUnit.Piece, targetUnit.Piece))
         {
-            yield return RunAbilityEffects(ability, sourceUnit.Piece, targetUnit.Piece);
+
+            //sourceUnit.PlayAttackAnimation();
+            //yield return new WaitForSeconds(1f);
+            //targetUnit.PlayHitAnimation();
+
+            //checks to see if the move is a status effect or not
+            if (ability.Base.Category == AbilityCategory.Status)
+            {
+                yield return RunAbilityEffects(ability.Base.Effects, sourceUnit.Piece, targetUnit.Piece, ability.Base.Target);
+            }
+            else
+            {
+                var damageDetails = targetUnit.Piece.TakeDamage(ability, sourceUnit.Piece);
+                yield return targetUnit.Hud.UpdateHP();
+                yield return ShowDamageDetails(damageDetails);
+            }
+
+            if (ability.Base.Secondaries != null && ability.Base.Secondaries.Count > 0 && targetUnit.Piece.HP > 0)
+            {
+                foreach(var secondary in ability.Base.Secondaries)
+                {
+                    var rng = UnityEngine.Random.Range(1, 101);
+                    if(rng <= secondary.Chance)
+                        yield return RunAbilityEffects(secondary, sourceUnit.Piece, targetUnit.Piece, secondary.Target);
+                }
+            }
+
+            //cheeks to see if its dead
+            if (targetUnit.Piece.HP <= 0)
+            {
+                yield return dialogBox.TypeDialog($"{targetUnit.Piece.Base.Name} dead");
+                //targetUnit.PlayDeathAnimation();
+                yield return new WaitForSeconds(2f);
+
+                CheckForBattleOver(targetUnit);
+
+            }
+
         }
         else
         {
-            var damageDetails = targetUnit.Piece.TakeDamage(ability, sourceUnit.Piece);
-            yield return targetUnit.Hud.UpdateHP();
-            yield return ShowDamageDetails(damageDetails);
-        }
-
-        //cheeks to see if its dead
-        if (targetUnit.Piece.HP <= 0)
-        {
-            yield return dialogBox.TypeDialog($"{targetUnit.Piece.Base.Name} dead");
-            //targetUnit.PlayDeathAnimation();
-            yield return new WaitForSeconds(2f);
-
-            CheckForBattleOver(targetUnit);
-
+            yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} attack did not land");
         }
 
         //statuses like burn(DOTS) will hurt after a turn
@@ -225,13 +244,12 @@ public class BattleSystem : MonoBehaviour
     }
 
     // runs debuff & buffs
-    IEnumerator RunAbilityEffects(Ability ability, Piece source, Piece target)
+    IEnumerator RunAbilityEffects(AbilityEffects effects, Piece source, Piece target, AbilityTarget abilityTarget)
     {
-        //cheacks to see what type of status boost effect
-        var effects = ability.Base.Effects;
+        //stat boosting
         if (effects.Boosts != null)
         {
-            if (ability.Base.Target == AbilityTarget.Self)
+            if (abilityTarget == AbilityTarget.Self)
                 source.ApplyBoost(effects.Boosts);
             else
                 target.ApplyBoost(effects.Boosts);
@@ -243,10 +261,43 @@ public class BattleSystem : MonoBehaviour
             target.SetStatus(effects.Status);
         }
 
+        // cheecks to see what type of volatile status condtion effect
+        if (effects.VolatileStatus != ConditionID.none)
+        {
+            target.SetVolatileStatus(effects.VolatileStatus);
+        }
+
         //calls function to show after applying stat
         yield return ShowStatusChanges(source);
         yield return ShowStatusChanges(target);
     }
+
+    // cheecks the acrecy of ability
+    bool CheckIfAbilityHit(Ability ability, Piece source, Piece target)
+    {
+
+        if (ability.Base.TureHit)
+            return true;
+
+        float abilityAccuracy = ability.Base.Accuracy;
+
+        int accuracy = source.StatBoosts[Stat.Accuracy];
+        int evasion = target.StatBoosts[Stat.Evasion];
+
+        var boostValues = new float[] { 1f, 4f / 3f, 5f / 3f, 2f, 7f / 3f, 8f / 3f, 3f };
+
+        if (accuracy > 0)
+            abilityAccuracy *= boostValues[accuracy];
+        else
+            abilityAccuracy /= boostValues[-accuracy];
+
+        if (evasion > 0)
+            abilityAccuracy /= boostValues[evasion];
+        else
+            abilityAccuracy *= boostValues[-evasion];
+
+        return UnityEngine.Random.Range(1, 101) <= abilityAccuracy;
+    } 
 
     //shows damage Details in dialog box
     IEnumerator ShowDamageDetails(DamageDetails damageDetails)

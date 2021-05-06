@@ -14,6 +14,11 @@ public class GameController : MonoBehaviour
     [SerializeReference] BattleSystem battleSystem;
     [SerializeReference] Camera mainCamera;
 
+    private void Awake()
+    {
+        ConditionDB.Init();
+    }
+
     private void Start()
     {
         playerController.OnEncountered += StartBattle;

@@ -17,9 +17,11 @@ public class AbilityBase : ScriptableObject
 
     [SerializeField] int power;
     [SerializeField] int accuracy;
+    [SerializeField] bool trueHit;
     [SerializeField] int ap;
     [SerializeField] AbilityCategory category;
     [SerializeField] AbilityEffects effects;
+    [SerializeField] List<SecendaryAbilityEffects> secondaries;
     [SerializeField] AbilityTarget target;
 
     //propertys
@@ -47,6 +49,11 @@ public class AbilityBase : ScriptableObject
     {
         get { return accuracy; }
     }
+    
+    public bool TureHit
+    {
+        get { return trueHit; }
+    }
 
     public int Ap
     {
@@ -61,6 +68,11 @@ public class AbilityBase : ScriptableObject
         get { return effects; }
     }
     
+    public List<SecendaryAbilityEffects> Secondaries
+    {
+        get { return secondaries; }
+    }
+
     public AbilityTarget Target{
         get { return target; }
     }
@@ -72,6 +84,7 @@ public class AbilityEffects
 {
     [SerializeField] List<StatBoost> boosts;
     [SerializeField] ConditionID status;
+    [SerializeField] ConditionID volatileStatus;
 
     public List<StatBoost> Boosts
     {
@@ -81,8 +94,30 @@ public class AbilityEffects
     public ConditionID Status
     {
         get { return status; }
+    } 
+    
+    public ConditionID VolatileStatus
+    {
+        get { return volatileStatus; }
     }
 
+}
+
+[System.Serializable]
+public class SecendaryAbilityEffects : AbilityEffects
+{
+    [SerializeField] int chance;
+    [SerializeField] AbilityTarget target;
+
+    public int Chance
+    {
+        get { return chance; }
+    }
+
+    public AbilityTarget Target
+    {
+        get { return target; }
+    }
 }
 
 // class shows list in inspecter
