@@ -19,6 +19,7 @@ public class AbilityBase : ScriptableObject
     [SerializeField] int accuracy;
     [SerializeField] bool trueHit;
     [SerializeField] int ap;
+    [SerializeField] int priority;
     [SerializeField] AbilityCategory category;
     [SerializeField] AbilityEffects effects;
     [SerializeField] List<SecendaryAbilityEffects> secondaries;
@@ -58,6 +59,11 @@ public class AbilityBase : ScriptableObject
     public int Ap
     {
         get { return ap; }
+    }
+
+    public int Priority
+    {
+        get { return priority; }
     }
 
     public AbilityCategory Category {

@@ -5,7 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 //defines states
-public enum BattleState { Start, ActionSelection, AbilitySelection, PreformAbility, Busy, PartyScreen, BattleOver }
+public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, PartyScreen, BattleOver }
+public enum BattleAction { Ability, SwitchPiece, Useitem, flee}
 
 public class BattleSystem : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class BattleSystem : MonoBehaviour
     public event Action<bool> OnBattleOver;
 
     BattleState state;
+    BattleState? prevState;
     int currentAction;
     int currentAbility;
     int currentUnit;
@@ -60,18 +62,8 @@ public class BattleSystem : MonoBehaviour
         yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
 
 
-        ChooseFirstTurn();
-        
-
-    }
-
-    //picks you goes first based of speed stat
-    void ChooseFirstTurn()
-    {
-        if (playerUnit.Piece.Speed >= enemyUnit.Piece.Speed)
-            ActionSelection();
-        else
-            StartCoroutine(EnemyAbility());
+        ActionSelection();
+    
     }
 
     // player turn phase fight/flee
@@ -112,32 +104,65 @@ public class BattleSystem : MonoBehaviour
     }
 
 
-    //use attack player selected
-    IEnumerator PlayerAbility()
+    IEnumerator RunTurns(BattleAction playerAction)
     {
+        state = BattleState.RunningTurn;
 
-        state = BattleState.PreformAbility;
+        if(playerAction == BattleAction.Ability)
+        {
+            //gets ability
+            playerUnit.Piece.CurrentAbility = playerUnit.Piece.abilities[currentAbility];
+            enemyUnit.Piece.CurrentAbility = enemyUnit.Piece.GetRandomAbility();
 
-        var ability = playerUnit.Piece.abilities[currentAbility];
-        yield return RunAbility(playerUnit, enemyUnit, ability);
-        
-        //if the battle stat was not changed by RunAbility,  then go to next step
-        if (state == BattleState.PreformAbility)
-            StartCoroutine(EnemyAbility());
-        
-    }
+            int playerAbilityPriority = playerUnit.Piece.CurrentAbility.Base.Priority;
+            int enemyAbilityPriority = enemyUnit.Piece.CurrentAbility.Base.Priority;
 
-    // runs enemy attack
-    IEnumerator EnemyAbility()
-    {
-        state = BattleState.PreformAbility;
+            //cheeks who goes first
+            bool PlayerGoesFirst = true;
+            if (enemyAbilityPriority > playerAbilityPriority)
+                PlayerGoesFirst = false;
+            else if(enemyAbilityPriority == playerAbilityPriority)
+                PlayerGoesFirst = playerUnit.Piece.Speed >= enemyUnit.Piece.Speed;
 
-        var ability = enemyUnit.Piece.GetRandomAbility();
-        yield return RunAbility(enemyUnit, playerUnit, ability);
 
-        if (state == BattleState.PreformAbility)
+            var firstUnit = (PlayerGoesFirst) ? playerUnit : enemyUnit;
+            var secondUnit = (PlayerGoesFirst) ? enemyUnit : playerUnit;
+
+            var secondPiece = secondUnit.Piece;
+
+            //first turn
+            yield return RunAbility(firstUnit, secondUnit, firstUnit.Piece.CurrentAbility);
+            yield return RunAfterTurn(firstUnit);
+            if (state == BattleState.BattleOver) yield break;
+
+            if (secondPiece.HP > 0)
+            {
+                //second turn
+                yield return RunAbility(secondUnit, firstUnit, secondUnit.Piece.CurrentAbility);
+                yield return RunAfterTurn(secondUnit);
+                if (state == BattleState.BattleOver) yield break;
+            }
+        }
+        else
+        {
+            //switch pieces code
+            if( playerAction == BattleAction.SwitchPiece)
+            {
+                var selectedUnit = playerParty.Pieces[currentUnit];
+                state = BattleState.Busy;
+                yield return SwitchUnit(selectedUnit);
+
+                //enemy turn ep 24 14:16
+                var enemyAbility = enemyUnit.Piece.GetRandomAbility();
+                  yield return RunAbility(enemyUnit, playerUnit, enemyAbility);
+                  yield return RunAfterTurn(enemyUnit);
+                  if (state == BattleState.BattleOver) yield break;
+                
+            }
+
+        }
+        if (state != BattleState.BattleOver)
             ActionSelection();
-        
     }
 
     // runs the ability
@@ -202,19 +227,7 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} attack did not land");
         }
 
-        //statuses like burn(DOTS) will hurt after a turn
-        sourceUnit.Piece.OnAfterTurn();
-        yield return ShowStatusChanges(sourceUnit.Piece);
-        yield return sourceUnit.Hud.UpdateHP();
-        if (sourceUnit.Piece.HP <= 0)
-        {
-            yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} dead");
-            //targetUnit.PlayDeathAnimation();
-            yield return new WaitForSeconds(2f);
-
-            CheckForBattleOver(sourceUnit);
-
-        }
+        
     }
 
     //shows stat message in dialog box
@@ -241,6 +254,27 @@ public class BattleSystem : MonoBehaviour
         }
         else
             BattleOver(true);
+    }
+
+    //runs code after a turn ep 24 8:55
+    IEnumerator RunAfterTurn(BattleUnit sourceUnit)
+    {
+        if (state == BattleState.BattleOver) yield break;
+        yield return new WaitUntil(() => state == BattleState.RunningTurn);
+
+        //statuses like burn(DOTS) will hurt after a turn
+        sourceUnit.Piece.OnAfterTurn();
+        yield return ShowStatusChanges(sourceUnit.Piece);
+        yield return sourceUnit.Hud.UpdateHP();
+        if (sourceUnit.Piece.HP <= 0)
+        {
+            yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} dead");
+            //targetUnit.PlayDeathAnimation();
+            yield return new WaitForSeconds(2f);
+
+            CheckForBattleOver(sourceUnit);
+
+        }
     }
 
     // runs debuff & buffs
@@ -342,6 +376,7 @@ public class BattleSystem : MonoBehaviour
             else if (currentAction == 2)
             {
                 //party
+                prevState = state;
                 OpenPartyUI();
             } 
             else if (currentAction == 3)
@@ -373,9 +408,12 @@ public class BattleSystem : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Z))
         {
+            var ability = playerUnit.Piece.abilities[currentAbility];
+            if (ability.AP == 0) return;
+
             dialogBox.EnableAbilitySelector(false);
             dialogBox.EnableDialogText(true);
-            StartCoroutine(PlayerAbility());
+            StartCoroutine(RunTurns(BattleAction.Ability));
         }
         else if (Input.GetKeyDown(KeyCode.X))
         {
@@ -417,8 +455,19 @@ public class BattleSystem : MonoBehaviour
             }
 
             partyscreen.gameObject.SetActive(false);
-            state = BattleState.Busy;
-            StartCoroutine(SwitchUnit(selectedUnit));
+
+            if(prevState == BattleState.ActionSelection)
+            {
+                // if switch during turn
+                prevState = null;
+                StartCoroutine(RunTurns(BattleAction.SwitchPiece));
+            }
+            else
+            {
+                //if piece is dead
+                state = BattleState.Busy;
+                StartCoroutine(SwitchUnit(selectedUnit));
+            }
         }
         else if (Input.GetKeyDown(KeyCode.X))
         {
@@ -431,10 +480,8 @@ public class BattleSystem : MonoBehaviour
     //switches out the pices in play
     IEnumerator SwitchUnit(Piece newPiece)
     {
-        bool currentPieceDead = true;
         if (playerUnit.Piece.HP > 0)
         {
-            currentPieceDead = false;
             yield return dialogBox.TypeDialog($"tagging out {playerUnit.Piece.Base.name}");
             //playerUnit.PlayDeathAnimation();
             yield return new WaitForSeconds(2);
@@ -446,10 +493,9 @@ public class BattleSystem : MonoBehaviour
 
         yield return dialogBox.TypeDialog($" {newPiece.Base.Name} is up next.");
 
-        if (currentPieceDead)
-            ChooseFirstTurn();
-        else
-            AbilitySelection();
+        
+        state = BattleState.RunningTurn;
+        
     }
 
 

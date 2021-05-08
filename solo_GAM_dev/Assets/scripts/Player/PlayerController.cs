@@ -7,7 +7,8 @@ public class PlayerController : MonoBehaviour
 {
 
     public float moveSpeed;
-    public LayerMask solidObjectslayer;
+    public LayerMask solidObjectsLayer;
+    public LayerMask interactableLayer;
     public LayerMask grassLayer;
 
     public event Action OnEncountered;
@@ -15,15 +16,15 @@ public class PlayerController : MonoBehaviour
     private bool isMoving;
     private Vector2 input;
 
-    
+    private Animator animator;
 
 
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        
+        animator = GetComponent<Animator>();
     }
+
 
     // Update is called once per frame
    public void HandleUpdate()
@@ -39,6 +40,8 @@ public class PlayerController : MonoBehaviour
 
             if (input != Vector2.zero)
             {
+                animator.SetFloat("moveX", input.x);
+                animator.SetFloat("moveY", input.x);
 
                 var targetPos = transform.position;
                 targetPos.x += input.x;
@@ -50,6 +53,25 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        animator.SetBool("isMoving", isMoving);
+
+        if (Input.GetKeyDown(KeyCode.Z))
+            Interact();
+
+    }
+
+    void Interact()
+    {
+        var faceingDir = new Vector3(animator.GetFloat("moveX"), animator.GetFloat("moveY"));
+        var intractPos = transform.position + faceingDir;
+
+        //Debug.DrawLine(transform.position, intractPos, Color.green, 0.5f);
+
+        var collider = Physics2D.OverlapCircle(intractPos, 0.3f, interactableLayer);
+        if(collider != null)
+        {
+            collider.GetComponent<Interactable>()?.Interact();
+        }
     }
 
     IEnumerator Move(Vector3 targetPos)
@@ -74,7 +96,7 @@ public class PlayerController : MonoBehaviour
     private bool IsWalkable(Vector3 targetPos)
     {
 
-       if (Physics2D.OverlapCircle(targetPos, 0.2f, solidObjectslayer) != null)
+       if (Physics2D.OverlapCircle(targetPos, 0.2f, solidObjectsLayer | interactableLayer) != null)
         {
 
             return false;

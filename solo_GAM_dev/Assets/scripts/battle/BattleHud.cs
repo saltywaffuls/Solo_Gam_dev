@@ -11,10 +11,10 @@ public class BattleHud : MonoBehaviour
     [SerializeField] Text statusText;
     [SerializeField] HPBar hpBar;
 
-    [SerializeField] Color psnColor;
-    [SerializeField] Color brnColor;
+    [SerializeField] Color dotColor;
+    [SerializeField] Color sdotColor;
     [SerializeField] Color slpColor;
-    [SerializeField] Color parColor;
+    [SerializeField] Color ferColor;
     [SerializeField] Color frzColor;
 
     Piece _piece;
@@ -32,10 +32,10 @@ public class BattleHud : MonoBehaviour
 
         statusColors = new Dictionary<ConditionID, Color>()
         {
-            {ConditionID.psn, psnColor },
-            {ConditionID.brn, brnColor },
+            {ConditionID.dot, dotColor },
+            {ConditionID.sdot, sdotColor },
             {ConditionID.slp, slpColor },
-            {ConditionID.par, parColor },
+            {ConditionID.fer, ferColor },
             {ConditionID.frz, frzColor },
         };
 

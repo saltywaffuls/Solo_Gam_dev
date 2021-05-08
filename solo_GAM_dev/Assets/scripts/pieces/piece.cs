@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -27,6 +28,7 @@ public class Piece
 
     public int HP { get; set; }
     public List<Ability> abilities { get; set; }
+    public Ability CurrentAbility { get; set; }
     public Dictionary<Stat, int> Stats { get; private set; }
     public Dictionary<Stat, int> StatBoosts { get; private set; }
     public Condition status { get; private set; }
@@ -238,8 +240,10 @@ public class Piece
     //returns random ability for enemy
     public Ability GetRandomAbility()
     {
-        int r = Random.Range(0, abilities.Count);
-        return abilities[r];
+        var abilitesWithAP = abilities.Where(x => x.AP > 0).ToList();
+
+        int r = Random.Range(0, abilitesWithAP.Count);
+        return abilitesWithAP[r];
     }
 
     public bool OnBeforeAbility()

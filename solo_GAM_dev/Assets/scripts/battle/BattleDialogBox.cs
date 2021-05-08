@@ -82,6 +82,11 @@ public class BattleDialogBox : MonoBehaviour
 
         apText.text = $"AP {ability.AP}/{ability.Base.Ap}";
         typeText.text = ability.Base.Type.ToString();
+
+        if (ability.AP == 0)
+            apText.color = Color.red;
+        else
+            apText.color = Color.black;
     }
 
     // shows ability name

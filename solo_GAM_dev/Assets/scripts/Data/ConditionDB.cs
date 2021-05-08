@@ -20,11 +20,11 @@ public class ConditionDB
     public static Dictionary<ConditionID, Condition> Conditions { get; set; } = new Dictionary<ConditionID, Condition>() 
     {
         {
-            ConditionID.psn,
+            ConditionID.dot,
             new Condition()
             {
-                Name = "poison",
-                StartMessage = "not feeling to well",
+                Name = "damage over time",
+                StartMessage = "A Dot is appied",
                 OnAfterTurn = (Piece piece) =>
                 {
                     piece.UpdateHP(piece.MaxHP / 8);
@@ -32,24 +32,26 @@ public class ConditionDB
                 }
             }
         },
+
         {
-            ConditionID.brn,
+            ConditionID.sdot,
             new Condition()
             {
-                Name = "burn",
-                StartMessage = "start flaming",
+                Name = "super damage over time",
+                StartMessage = "super dot",
                 OnAfterTurn = (Piece piece) =>
                 {
                     piece.UpdateHP(piece.MaxHP / 16);
-                    piece.statusChanges.Enqueue($"{piece.Base.Name} is being rosted");
+                    piece.statusChanges.Enqueue($"{piece.Base.Name} very soul hurts");
                 }
             }
         },
+
         {
-            ConditionID.par,
+            ConditionID.fer,
             new Condition()
             {
-                Name = "paralyzed",
+                Name = "fear",
                 StartMessage = "is overwelmdd",
                 OnBeforeAbility = (Piece piece) =>
                 {
@@ -63,6 +65,7 @@ public class ConditionDB
                 }
             }
         },
+
          {
             ConditionID.frz,
             new Condition()
@@ -82,6 +85,7 @@ public class ConditionDB
                 }
             }
         },
+
          {
             ConditionID.slp,
             new Condition()
@@ -152,6 +156,6 @@ public class ConditionDB
 public enum ConditionID
 {
     // ep20 timestamp 2:44
-   none, psn, brn, slp, par, frz,
+   none, dot, sdot, slp, fer, frz,
    confusion
 }
