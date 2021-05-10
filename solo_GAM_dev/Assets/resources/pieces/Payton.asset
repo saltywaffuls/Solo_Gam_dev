@@ -31,3 +31,5 @@ MonoBehaviour:
     level: 1
   - abilityBase: {fileID: 11400000, guid: 3b3fccfec1e368548a9f6ff10dedf8c6, type: 2}
     level: 1
+  - abilityBase: {fileID: 11400000, guid: f8f6f605776e3b144b887bb143100880, type: 2}
+    level: 1
