@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public enum GameState {FreeRoam, Battle }
+public enum GameState {FreeRoam, Battle, Dialog, Cutscene }
 
 public class GameController : MonoBehaviour
 {
@@ -23,12 +23,32 @@ public class GameController : MonoBehaviour
     {
         playerController.OnEncountered += StartBattle;
         battleSystem.OnBattleOver += EndBattle;
+
+        playerController.OnEnterEnemyView += (Collider2D enemyCollider) => 
+        {
+            var enemy = enemyCollider.GetComponentInParent<EnemyController>();
+            if (enemy != null)
+            {
+                state = GameState.Battle;
+                StartCoroutine (enemy.TriggerEnemyBattle(playerController));
+            }
+        };
+
+        DialogManager.Instance.OnShowDialog += () =>
+        {
+            state = GameState.Dialog;
+        };
+
+        DialogManager.Instance.OnCloseDialog += () =>
+        {
+            if (state == GameState.Dialog)
+                state = GameState.FreeRoam;
+        };
     }
 
     private void Update()
     {
-
-        
+        //checking overall game state
         if(state == GameState.FreeRoam)
         {
             playerController.HandleUpdate();
@@ -36,6 +56,10 @@ public class GameController : MonoBehaviour
         else if( state == GameState.Battle)
         {
             battleSystem.HandleUpdate();
+        }
+        else if ( state == GameState.Dialog)
+        {
+            DialogManager.Instance.HandleUpdate();
         }
     }
 
