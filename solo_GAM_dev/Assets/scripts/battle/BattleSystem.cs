@@ -15,6 +15,8 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] BattleUnit enemyUnit;
     [SerializeField] BattleDialogBox dialogBox;
     [SerializeField] PartyScreen partyscreen;
+    [SerializeField] Image playerImage;
+    [SerializeField] Image enemyImage;
 
     public event Action<bool> OnBattleOver;
 
@@ -25,12 +27,30 @@ public class BattleSystem : MonoBehaviour
     int currentUnit;
 
     PieceParty playerParty;
+    PieceParty enemyParty;
     Piece wildPiece;
+
+    bool isEnemyBattle = false;
+
+    PlayerController player;
+    EnemyController enemy;
 
     public void StartBattle(PieceParty playerParty, Piece wildPiece)
     {
         this.playerParty = playerParty;
         this.wildPiece = wildPiece;
+        StartCoroutine( SetUpBattle());
+    }
+
+    public void StartEnemyBattle(PieceParty playerParty, PieceParty enemyParty)
+    {
+        this.playerParty = playerParty;
+        this.enemyParty = enemyParty;
+
+        isEnemyBattle = true;
+        player = playerParty.GetComponent<PlayerController>();
+        enemy = enemyParty.GetComponent<EnemyController>();
+
         StartCoroutine( SetUpBattle());
     }
 
@@ -52,16 +72,52 @@ public class BattleSystem : MonoBehaviour
 
     public IEnumerator SetUpBattle()
     {
-        playerUnit.SetUp(playerParty.GetHealthyPiece());
-        enemyUnit.SetUp(wildPiece);
+        playerUnit.Clear();
+        enemyUnit.Clear();
+
+        if (!isEnemyBattle)
+        {
+            //random battle
+            playerUnit.SetUp(playerParty.GetHealthyPiece());
+            enemyUnit.SetUp(wildPiece);
+
+            dialogBox.SetAbilityName(playerUnit.Piece.abilities);
+            yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
+        }
+        else
+        {
+            //enemy battle
+
+            //show player/enemy
+            playerUnit.gameObject.SetActive(false);
+            enemyUnit.gameObject.SetActive(false);
+
+            playerImage.gameObject.SetActive(true);
+            enemyImage.gameObject.SetActive(true);
+            playerImage.sprite = player.Sprite;
+            enemyImage.sprite = enemy.Sprite;
+
+            yield return dialogBox.TypeDialog($"{enemy.Name}");
+
+            //send out first piece of enemy
+            enemyImage.gameObject.SetActive(false);
+            enemyUnit.gameObject.SetActive(true);
+            var enemyPiece = enemyParty.GetHealthyPiece();
+            enemyUnit.SetUp(enemyPiece);
+
+            yield return dialogBox.TypeDialog($"{enemy.Name} is {enemyPiece.Base.Name}");
+
+            //send out first piece of player
+            playerImage.gameObject.SetActive(false);
+            playerUnit.gameObject.SetActive(true);
+            var playerPiece = playerParty.GetHealthyPiece();
+            playerUnit.SetUp(playerPiece);
+
+            yield return dialogBox.TypeDialog($"tag in {playerPiece.Base.Name}");
+            dialogBox.SetAbilityName(playerUnit.Piece.abilities);
+        }
 
         partyscreen.Init();
-
-        dialogBox.SetAbilityName(playerUnit.Piece.abilities);
-
-        yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
-
-
         ActionSelection();
     
     }
@@ -253,7 +309,21 @@ public class BattleSystem : MonoBehaviour
                 BattleOver(false);
         }
         else
-            BattleOver(true);
+        {
+            if (!isEnemyBattle)
+            {
+                BattleOver(true);
+            }
+            else
+            {
+                var nextPiece = enemyParty.GetHealthyPiece();
+                if (nextPiece != null)
+                    StartCoroutine(SendNextEnemyPiece(nextPiece));
+                else
+                    BattleOver(true);
+            }
+        }
+            
     }
 
     //runs code after a turn ep 24 8:55
@@ -498,5 +568,14 @@ public class BattleSystem : MonoBehaviour
         
     }
 
+    IEnumerator SendNextEnemyPiece(Piece nextPiece)
+    {
+        state = BattleState.Busy;
+
+        enemyUnit.SetUp(nextPiece);
+        yield return dialogBox.TypeDialog($" {nextPiece.Base.Name} comes from the shadows");
+
+        state = BattleState.RunningTurn;
+    }
 
 }

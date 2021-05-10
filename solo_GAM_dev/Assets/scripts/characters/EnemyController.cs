@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
+    [SerializeField] string names;
+    [SerializeField] Sprite sprite;
     [SerializeField] Dialog dialog;
     [SerializeField] GameObject alert;
     [SerializeField] GameObject fov;
@@ -35,7 +37,10 @@ public class EnemyController : MonoBehaviour
         yield return character.Move(moveVec);
 
         // show dialog ep 31 13:35 MAYBE A PROBLEM HERE
-        StartCoroutine(DialogManager.Instance.ShowDialog(dialog));
+        StartCoroutine(DialogManager.Instance.ShowDialog(dialog, () => 
+        {
+            GameController.Instance.StartEnemyBattle(this);
+        }));
     }
 
     public void SetFovRotation(FacingDirection dir)
@@ -49,5 +54,15 @@ public class EnemyController : MonoBehaviour
             angle = 270f;
 
         fov.transform.eulerAngles = new Vector3(0f, 0f, angle);
+    }
+
+    public string Name
+    {
+        get { return names; }
+    }
+
+    public Sprite Sprite
+    {
+        get { return sprite; }
     }
 }

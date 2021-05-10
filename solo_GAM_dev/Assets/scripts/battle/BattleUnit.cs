@@ -37,10 +37,16 @@ public class BattleUnit : MonoBehaviour
         else
             GetComponent<Image>().sprite = Piece.Base.FrontSprite;
 
+        hud.gameObject.SetActive(true);
         hud.SetData(piece);
 
         //eps 12 timestamp 12:50
         //image.color = originalColor;
+    }
+
+    public void Clear()
+    {
+        hud.gameObject.SetActive(false);
     }
 
 }

@@ -21,6 +21,7 @@ public class DialogManager : MonoBehaviour
     }
 
     Dialog dialog;
+    Action onDialogfinished;
     int currentLine = 0;
     bool isTyping;
 
@@ -42,24 +43,14 @@ public class DialogManager : MonoBehaviour
                 currentLine = 0;
                 IsShowing = false;
                 dialgBox.SetActive(false);
+                onDialogfinished?.Invoke();
                 OnCloseDialog?.Invoke();
             }
         }
     }
 
-    // ep 27 21:20
-    public IEnumerator ShowDialog(Dialog dialog)
-    {
-        yield return new WaitForEndOfFrame();
-
-        OnShowDialog?.Invoke();
-
-        this.dialog = dialog;
-        dialgBox.SetActive(true);
-        StartCoroutine(TypeDialog(dialog.Lines[0]));
-    }
-
-    public IEnumerator ShowDialog(Dialog dialog, object p)
+    // ep 27 21:20 fixed ep 30 2:31
+    public IEnumerator ShowDialog(Dialog dialog, Action onfinished = null)
     {
         yield return new WaitForEndOfFrame();
 
@@ -67,9 +58,13 @@ public class DialogManager : MonoBehaviour
 
         IsShowing = true;
         this.dialog = dialog;
+        onDialogfinished = onfinished;
+
         dialgBox.SetActive(true);
         StartCoroutine(TypeDialog(dialog.Lines[0]));
     }
+
+   
 
     //animates text
     public IEnumerator TypeDialog(string line)

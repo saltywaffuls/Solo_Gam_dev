@@ -17,7 +17,7 @@ MonoBehaviour:
   type: 3
   power: 0
   accuracy: 0
-  trueHit: 0
+  trueHit: 1
   ap: 3
   priority: 0
   category: 2
@@ -31,7 +31,7 @@ MonoBehaviour:
     volatileStatus: 0
   secondaries:
   - boosts: []
-    status: 2
+    status: 3
     volatileStatus: 0
     chance: 50
     target: 0

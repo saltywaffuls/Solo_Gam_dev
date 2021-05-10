@@ -9,6 +9,7 @@ public class GameController : MonoBehaviour
 {
     GameState state;
 
+    public static GameController Instance { get; private set; }
 
     [SerializeReference] PlayerController playerController;
     [SerializeReference] BattleSystem battleSystem;
@@ -16,6 +17,7 @@ public class GameController : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         ConditionDB.Init();
     }
 
@@ -74,6 +76,18 @@ public class GameController : MonoBehaviour
         var wildPiece = FindObjectOfType<MapArea>().GetComponent<MapArea>().GetRandomWildPiece();
 
         battleSystem.StartBattle(playerParty, wildPiece);
+    }
+
+    public void StartEnemyBattle(EnemyController enemy)
+    {
+        state = GameState.Battle;
+        battleSystem.gameObject.SetActive(true);
+        mainCamera.gameObject.SetActive(false);
+
+        var playerParty = playerController.GetComponent<PieceParty>();
+        var enemyParty = enemy.GetComponent<PieceParty>();
+
+        battleSystem.StartEnemyBattle(playerParty, enemyParty);
     }
 
     void EndBattle(bool won)

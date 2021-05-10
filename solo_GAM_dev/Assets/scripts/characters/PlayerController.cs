@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
-{   
+{
+
+    [SerializeField] string names;
+    [SerializeField] Sprite sprite;
 
     public event Action OnEncountered;
     public event Action<Collider2D> OnEnterEnemyView;
@@ -91,5 +94,15 @@ public class PlayerController : MonoBehaviour
             OnEnterEnemyView?.Invoke(collider);
             Debug.Log("i see you");
         }
+    }
+
+    public string Name
+    {
+        get { return names; }
+    }
+
+    public Sprite Sprite
+    {
+        get { return sprite; }
     }
 }
