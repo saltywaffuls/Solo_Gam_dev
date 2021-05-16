@@ -5,19 +5,23 @@ using UnityEngine.UI;
 
 public class BattleDialogBox : MonoBehaviour
 {
-    [SerializeReference] int letterPerSecond;
-    [SerializeReference] Color highlightedColor;
+    [SerializeField] int letterPerSecond;
+    [SerializeField] Color highlightedColor;
 
-    [SerializeReference] Text dialogText;
-    [SerializeReference] GameObject actionSelector;
-    [SerializeReference] GameObject abilitySelector;
-    [SerializeReference] GameObject abilityDetails;
+    [SerializeField] Text dialogText;
+    [SerializeField] GameObject actionSelector;
+    [SerializeField] GameObject abilitySelector;
+    [SerializeField] GameObject abilityDetails;
+    [SerializeField] GameObject choiceBox;
 
-    [SerializeReference] List<Text> actionText;
-    [SerializeReference] List<Text> abilityText;
+    [SerializeField] List<Text> actionText;
+    [SerializeField] List<Text> abilityText;
 
-    [SerializeReference] Text apText;
-    [SerializeReference] Text typeText;
+    [SerializeField] Text apText;
+    [SerializeField] Text typeText;
+
+    [SerializeField] Text yesText;
+    [SerializeField] Text noText;
 
     public void SetDialog(string dialog)
     {
@@ -54,6 +58,10 @@ public class BattleDialogBox : MonoBehaviour
         abilityDetails.SetActive(enabled);
     }
 
+    public void EnableChoiceBox(bool enabled)
+    {
+        choiceBox.SetActive(enabled);
+    }
 
     //sets color of action selector
     public void UpdateActionSelection(int selectedAction)
@@ -98,6 +106,20 @@ public class BattleDialogBox : MonoBehaviour
                 abilityText[i].text = abilities[i].Base.Name;
             else
                 abilityText[i].text = "-";
+        }
+    }
+
+    public void UpdateChoiceBox(bool yesSelected)
+    {
+        if (yesSelected)
+        {
+            yesText.color = highlightedColor;
+            noText.color = Color.black;
+        }
+        else
+        {
+            noText.color = highlightedColor;
+            yesText.color = Color.black;
         }
     }
 

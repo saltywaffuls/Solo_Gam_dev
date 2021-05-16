@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 //defines states
-public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, PartyScreen, BattleOver }
+public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, PartyScreen, AboutToUse, BattleOver }
 public enum BattleAction { Ability, SwitchPiece, Useitem, flee}
 
 public class BattleSystem : MonoBehaviour
@@ -25,6 +25,7 @@ public class BattleSystem : MonoBehaviour
     int currentAction;
     int currentAbility;
     int currentUnit;
+    bool aboutToUseChoice = true;
 
     PieceParty playerParty;
     PieceParty enemyParty;
@@ -34,6 +35,8 @@ public class BattleSystem : MonoBehaviour
 
     PlayerController player;
     EnemyController enemy;
+
+    int escapeAttempts;
 
     public void StartBattle(PieceParty playerParty, Piece wildPiece)
     {
@@ -67,6 +70,10 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.PartyScreen)
         {
             HandlePartySelection();
+        }
+        else if (state == BattleState.AboutToUse)
+        {
+            HandleAboutToUse();
         }
     }
 
@@ -117,6 +124,7 @@ public class BattleSystem : MonoBehaviour
             dialogBox.SetAbilityName(playerUnit.Piece.abilities);
         }
 
+        escapeAttempts = 0;
         partyscreen.Init();
         ActionSelection();
     
@@ -157,6 +165,15 @@ public class BattleSystem : MonoBehaviour
         dialogBox.EnableActionSelector(false);
         dialogBox.EnableDialogText(false);
         dialogBox.EnableAbilitySelector(true);
+    }
+
+    IEnumerator AboutToUse(Piece newPiece)
+    {
+        state = BattleState.Busy;
+        yield return dialogBox.TypeDialog($"a member of {enemy.Name} {newPiece.Base.Name} steps up to fight you. do you want to swap a piece?");
+
+        state = BattleState.AboutToUse;
+        dialogBox.EnableChoiceBox(true);
     }
 
 
@@ -214,6 +231,10 @@ public class BattleSystem : MonoBehaviour
                   yield return RunAfterTurn(enemyUnit);
                   if (state == BattleState.BattleOver) yield break;
                 
+            }
+            else if(playerAction == BattleAction.flee)
+            {
+                yield return TryToEscape();
             }
 
         }
@@ -318,7 +339,7 @@ public class BattleSystem : MonoBehaviour
             {
                 var nextPiece = enemyParty.GetHealthyPiece();
                 if (nextPiece != null)
-                    StartCoroutine(SendNextEnemyPiece(nextPiece));
+                    StartCoroutine(AboutToUse(nextPiece));
                 else
                     BattleOver(true);
             }
@@ -343,7 +364,7 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(2f);
 
             CheckForBattleOver(sourceUnit);
-
+            yield return new WaitUntil(() => state == BattleState.RunningTurn);
         }
     }
 
@@ -452,6 +473,7 @@ public class BattleSystem : MonoBehaviour
             else if (currentAction == 3)
             {
                 //flee
+                StartCoroutine(RunTurns(BattleAction.flee));
             }
         }
 
@@ -541,11 +563,55 @@ public class BattleSystem : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.X))
         {
+            if(playerUnit.Piece.HP <= 0)
+            {
+                partyscreen.SetMessageText("piece must be in play");
+                return;
+            }
+
             partyscreen.gameObject.SetActive(false);
-            ActionSelection();
+
+            if (prevState == BattleState.AboutToUse)
+            {
+                prevState = null;
+                StartCoroutine(SendNextEnemyPiece());
+            }
+            else
+                ActionSelection();
         }
 
     }
+
+    // handles the switch option of party after enemy piece dies
+    void HandleAboutToUse()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+            aboutToUseChoice = !aboutToUseChoice;
+
+        dialogBox.UpdateChoiceBox(aboutToUseChoice);
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            dialogBox.EnableChoiceBox(false);
+            if(aboutToUseChoice == true)
+            {
+                //yes
+                prevState = BattleState.AboutToUse;
+                OpenPartyUI();
+            }
+            else
+            {
+                //no
+                StartCoroutine(SendNextEnemyPiece());
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            dialogBox.EnableChoiceBox(false);
+            StartCoroutine(SendNextEnemyPiece());
+        }
+    }
+
 
     //switches out the pices in play
     IEnumerator SwitchUnit(Piece newPiece)
@@ -563,19 +629,69 @@ public class BattleSystem : MonoBehaviour
 
         yield return dialogBox.TypeDialog($" {newPiece.Base.Name} is up next.");
 
-        
-        state = BattleState.RunningTurn;
-        
+        if (prevState == null)
+        {
+            state = BattleState.RunningTurn;
+        }
+        else if (prevState == BattleState.AboutToUse)
+        {
+            prevState = null;
+            StartCoroutine(SendNextEnemyPiece());
+        }
     }
 
-    IEnumerator SendNextEnemyPiece(Piece nextPiece)
+    IEnumerator SendNextEnemyPiece()
     {
         state = BattleState.Busy;
 
+        var nextPiece = enemyParty.GetHealthyPiece();
         enemyUnit.SetUp(nextPiece);
         yield return dialogBox.TypeDialog($" {nextPiece.Base.Name} comes from the shadows");
 
         state = BattleState.RunningTurn;
     }
 
+    //flee 
+    IEnumerator TryToEscape()
+    {
+        state = BattleState.Busy;
+
+        // try and add some boolian here 
+        // ep 35 5:33 if we don't want player to flee during enemy battle
+        /*
+         if (isEnemyBattle)
+        {
+            yield return dialogBox.TypeDialog($"text here");
+            state = BattleState.RunningTurn;
+            yield break;
+        }
+         */
+
+        ++escapeAttempts;
+
+        int playerSpeed = playerUnit.Piece.Speed;
+        int enemySpeed = enemyUnit.Piece.Speed;
+
+        if (enemySpeed < playerSpeed)
+        {
+            yield return dialogBox.TypeDialog($"you got away");
+            BattleOver(true);
+        }
+        else
+        {
+            float f = (playerSpeed * 128) / enemySpeed + 30 * escapeAttempts;
+            f = f % 256;
+
+            if(UnityEngine.Random.Range(0, 256) < f)
+            {
+                yield return dialogBox.TypeDialog($"you got away");
+                BattleOver(true);
+            }
+            else
+            {
+                yield return dialogBox.TypeDialog($"enemy stop you from getting away");
+                state = BattleState.RunningTurn;
+            }
+        }
+    }
 }

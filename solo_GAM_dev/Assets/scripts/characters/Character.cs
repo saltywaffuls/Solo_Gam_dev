@@ -62,6 +62,20 @@ public class Character : MonoBehaviour
         return true;
     }
 
+    public void LookTowerds(Vector3 targetPos)
+    {
+        var xDiff = Mathf.Floor(targetPos.x) - Mathf.Floor(transform.position.x);
+        var yDiff = Mathf.Floor(targetPos.y) - Mathf.Floor(transform.position.y);
+
+        if (xDiff == 0 || yDiff == 0)
+        {
+            animator.MoveX = Mathf.Clamp(xDiff, -1f, 1f);
+            animator.MoveY = Mathf.Clamp(yDiff, -1f, 1f);
+        }
+        else
+            Debug.LogError("erroe in look towards: you can't look diagonally");
+    }
+
     public CharacterAnimator Animator
     {
         get => animator;

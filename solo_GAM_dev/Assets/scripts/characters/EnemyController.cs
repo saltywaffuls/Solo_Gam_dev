@@ -2,13 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : MonoBehaviour, Interactable
 {
     [SerializeField] string names;
     [SerializeField] Sprite sprite;
     [SerializeField] Dialog dialog;
+    [SerializeField] Dialog dialogAfterBattle;
     [SerializeField] GameObject alert;
     [SerializeField] GameObject fov;
+
+    //state
+    bool battleLost = false;
+    [SerializeField] bool stillAlive;
 
     Character character;
 
@@ -20,6 +25,28 @@ public class EnemyController : MonoBehaviour
     private void Start()
     {
         SetFovRotation(character.Animator.DefultDirection);
+    }
+
+    private void Update()
+    {
+        character.HandleUpdate(); 
+    }
+
+    public void Interact(Transform initiator)
+    {
+        character.LookTowerds(initiator.position);
+
+        if (!battleLost)
+        {
+            StartCoroutine(DialogManager.Instance.ShowDialog(dialog, () =>
+            {
+                GameController.Instance.StartEnemyBattle(this);
+            }));
+        }
+        else
+        {
+            StartCoroutine(DialogManager.Instance.ShowDialog(dialogAfterBattle));
+        }
     }
 
     public IEnumerator TriggerEnemyBattle(PlayerController player)
@@ -43,6 +70,22 @@ public class EnemyController : MonoBehaviour
         }));
     }
 
+    public void BattleLost()
+    {
+        battleLost = true;
+        if(stillAlive == true)
+        {
+            fov.gameObject.SetActive(false);
+        }
+        else
+        {
+            this.gameObject.SetActive(false);
+        }
+        
+        
+    }
+
+
     public void SetFovRotation(FacingDirection dir)
     {
         float angle = 0f;
@@ -55,6 +98,8 @@ public class EnemyController : MonoBehaviour
 
         fov.transform.eulerAngles = new Vector3(0f, 0f, angle);
     }
+
+    
 
     public string Name
     {

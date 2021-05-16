@@ -15,6 +15,8 @@ public class GameController : MonoBehaviour
     [SerializeReference] BattleSystem battleSystem;
     [SerializeReference] Camera mainCamera;
 
+    EnemyController enemy;
+
     private void Awake()
     {
         Instance = this;
@@ -84,6 +86,7 @@ public class GameController : MonoBehaviour
         battleSystem.gameObject.SetActive(true);
         mainCamera.gameObject.SetActive(false);
 
+        this.enemy = enemy;
         var playerParty = playerController.GetComponent<PieceParty>();
         var enemyParty = enemy.GetComponent<PieceParty>();
 
@@ -92,6 +95,12 @@ public class GameController : MonoBehaviour
 
     void EndBattle(bool won)
     {
+        if (enemy != null && won == true)
+        {
+            enemy.BattleLost();
+            enemy = null;
+        }
+
         state = GameState.FreeRoam;
         battleSystem.gameObject.SetActive(false);
         mainCamera.gameObject.SetActive(true);
