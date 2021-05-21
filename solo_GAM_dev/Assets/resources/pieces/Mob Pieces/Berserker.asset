@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 233135c6c3bcf3d47a476de5226b7214, type: 3}
+  m_Name: Berserker
+  m_EditorClassIdentifier: 
+  pieceName: Berserker Miura
+  description: 
+  frontSprite: {fileID: 21300000, guid: 17227416b4a1e204cb4072d890b918f7, type: 3}
+  backSprite: {fileID: 21300000, guid: 17227416b4a1e204cb4072d890b918f7, type: 3}
+  type1: 1
+  type2: 5
+  maxHP: 45
+  attack: 50
+  defense: 25
+  ultAttack: 65
+  ultDefense: 35
+  speed: 40
+  learnableAbilities:
+  - abilityBase: {fileID: 11400000, guid: 406d6dc543fe8f145b32fe385ee77973, type: 2}
+    level: 1
+  - abilityBase: {fileID: 11400000, guid: 00dba713523c4a6419e09572b7b4308d, type: 2}
+    level: 1
+  - abilityBase: {fileID: 11400000, guid: cecbe6e0f6930b1428d11d16a21f0b84, type: 2}
+    level: 2
+  - abilityBase: {fileID: 11400000, guid: a67a0dd9caac0db45ad963a15014c1ed, type: 2}
+    level: 3

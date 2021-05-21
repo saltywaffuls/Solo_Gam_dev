@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 233135c6c3bcf3d47a476de5226b7214, type: 3}
+  m_Name: Humen Ban
+  m_EditorClassIdentifier: 
+  pieceName: Ban
+  description: 
+  frontSprite: {fileID: 21300000, guid: bd6064326206e81409ea89af2507304b, type: 3}
+  backSprite: {fileID: 21300000, guid: bd6064326206e81409ea89af2507304b, type: 3}
+  type1: 1
+  type2: 0
+  maxHP: 43
+  attack: 29
+  defense: 31
+  ultAttack: 29
+  ultDefense: 31
+  speed: 37
+  learnableAbilities:
+  - abilityBase: {fileID: 11400000, guid: eb0951ea432dfe04ab5dc37a7002ef0c, type: 2}
+    level: 1
+  - abilityBase: {fileID: 11400000, guid: 7dc550135b2174047b6d0b23e2cb35b0, type: 2}
+    level: 1

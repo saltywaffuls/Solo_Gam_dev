@@ -2241,7 +2241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bb336b61a815a441b76c5a7a7cf02b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  names: 
+  names: Ban
   sprite: {fileID: 21300000, guid: 8396e2f3a48d02a4ab098463d2dbbb9e, type: 3}
 --- !u!114 &899215691
 MonoBehaviour:
@@ -2257,12 +2257,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pieces:
   - _base: {fileID: 11400000, guid: 8fd280905e944d84ea5085caa7a9cb0b, type: 2}
-    level: 2
-  - _base: {fileID: 11400000, guid: 8fd280905e944d84ea5085caa7a9cb0b, type: 2}
-    level: 4
-  - _base: {fileID: 11400000, guid: 8fd280905e944d84ea5085caa7a9cb0b, type: 2}
+    level: 6
+  - _base: {fileID: 11400000, guid: f35a9c631940cf9408a020a31fce6964, type: 2}
     level: 5
-  - _base: {fileID: 11400000, guid: 8fd280905e944d84ea5085caa7a9cb0b, type: 2}
+  - _base: {fileID: 11400000, guid: 9f7d539a6467ea54fbc1520cf81b6aab, type: 2}
     level: 5
 --- !u!114 &899215692
 MonoBehaviour:
@@ -7451,11 +7449,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36b98b5f7ce04614ba9f21b50b6425cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  names: 
-  sprite: {fileID: 21300000, guid: 8396e2f3a48d02a4ab098463d2dbbb9e, type: 3}
+  names: Creation & Destruction Followers
+  sprite: {fileID: 21300000, guid: 85e314ffe046a9b429c682a965a98780, type: 3}
   dialog:
     lines:
-    - your done for!
+    - You will fail here!
   dialogAfterBattle:
     lines:
     - you're good
@@ -7623,9 +7621,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pieces:
-  - _base: {fileID: 11400000, guid: 8fd280905e944d84ea5085caa7a9cb0b, type: 2}
-    level: 1
-  - _base: {fileID: 11400000, guid: 8fd280905e944d84ea5085caa7a9cb0b, type: 2}
+  - _base: {fileID: 11400000, guid: 3663cb3242d76534d83434ec999a9fc7, type: 2}
+    level: 4
+  - _base: {fileID: 11400000, guid: 1623849f80f7798468ec68609e35fdef, type: 2}
+    level: 5
+  - _base: {fileID: 11400000, guid: fb20238177a2dc64798bf68e8994862f, type: 2}
     level: 5
 --- !u!1 &1643506275
 GameObject:

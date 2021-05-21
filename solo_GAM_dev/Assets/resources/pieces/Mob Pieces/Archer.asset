@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 233135c6c3bcf3d47a476de5226b7214, type: 3}
+  m_Name: Archer
+  m_EditorClassIdentifier: 
+  pieceName: 'Archer '
+  description: 
+  frontSprite: {fileID: 21300000, guid: 83139a917115ff049b4dee606c33cc77, type: 3}
+  backSprite: {fileID: 21300000, guid: 83139a917115ff049b4dee606c33cc77, type: 3}
+  type1: 1
+  type2: 0
+  maxHP: 44
+  attack: 48
+  defense: 53
+  ultAttack: 50
+  ultDefense: 53
+  speed: 49
+  learnableAbilities:
+  - abilityBase: {fileID: 11400000, guid: af4b287497090684b981d8b21597af6a, type: 2}
+    level: 1
+  - abilityBase: {fileID: 11400000, guid: 6721dd0e416cd9c4b8e396e1295f8559, type: 2}
+    level: 2
+  - abilityBase: {fileID: 11400000, guid: 8a5f256b5bdcaa24f916b4a9b6e4323f, type: 2}
+    level: 3
+  - abilityBase: {fileID: 11400000, guid: 8124e1f767b640641a5a0f4a0675eea0, type: 2}
+    level: 4
