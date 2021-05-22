@@ -57,8 +57,12 @@ public class NPCController : MonoBehaviour, Interactable
     {
         state = NPCState.Walking;
 
+        var oldPos = transform.position;
+
         yield return character.Move(movmentPattern[currentMovePattern]);
-        currentMovePattern = (currentMovePattern + 1) % movmentPattern.Count;
+
+        if(transform.position != oldPos)
+           currentMovePattern = (currentMovePattern + 1) % movmentPattern.Count;
 
         state = NPCState.Idle;
     }

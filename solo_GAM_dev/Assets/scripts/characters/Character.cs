@@ -24,6 +24,8 @@ public class Character : MonoBehaviour
         targetPos.x += moveVec.x;
         targetPos.y += moveVec.y;
 
+
+        // rplace with !IsPathClear
         if (!IsWalkable(targetPos))
             yield break;
 
@@ -47,6 +49,18 @@ public class Character : MonoBehaviour
     public void HandleUpdate()
     {
         animator.IsMoving = IsMoving;
+    }
+
+    //colition ep 30 some type of bug players cant move up and down 
+    private bool IsPathClear(Vector3 targetPos)
+    {
+        var diff = targetPos - transform.position;
+        var dir = diff.normalized;
+
+        if (Physics2D.BoxCast(transform.position + dir, new Vector2(0.2f, 0.2f), 0f, dir, diff.magnitude - 1, GameLayer.i.SolidObjectsLayer | GameLayer.i.InteractableLayer | GameLayer.i.PlayerLayer) == true)
+            return false;
+
+        return true;
     }
 
     //colition

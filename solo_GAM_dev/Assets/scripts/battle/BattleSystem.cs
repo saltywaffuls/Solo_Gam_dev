@@ -261,9 +261,9 @@ public class BattleSystem : MonoBehaviour
         if (CheckIfAbilityHit(ability, sourceUnit.Piece, targetUnit.Piece))
         {
 
-            //sourceUnit.PlayAttackAnimation();
-            //yield return new WaitForSeconds(1f);
-            //targetUnit.PlayHitAnimation();
+            sourceUnit.PlayAttackAnimation();
+            yield return new WaitForSeconds(1f);
+            targetUnit.PlayHitAnimation();
 
             //checks to see if the move is a status effect or not
             if (ability.Base.Category == AbilityCategory.Status)
@@ -291,7 +291,7 @@ public class BattleSystem : MonoBehaviour
             if (targetUnit.Piece.HP <= 0)
             {
                 yield return dialogBox.TypeDialog($"{targetUnit.Piece.Base.Name} dead");
-                //targetUnit.PlayDeathAnimation();
+                targetUnit.PlayDeathAnimation();
                 yield return new WaitForSeconds(2f);
 
                 CheckForBattleOver(targetUnit);
@@ -360,7 +360,7 @@ public class BattleSystem : MonoBehaviour
         if (sourceUnit.Piece.HP <= 0)
         {
             yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} dead");
-            //targetUnit.PlayDeathAnimation();
+            sourceUnit.PlayDeathAnimation();
             yield return new WaitForSeconds(2f);
 
             CheckForBattleOver(sourceUnit);
@@ -619,7 +619,7 @@ public class BattleSystem : MonoBehaviour
         if (playerUnit.Piece.HP > 0)
         {
             yield return dialogBox.TypeDialog($"tagging out {playerUnit.Piece.Base.name}");
-            //playerUnit.PlayDeathAnimation();
+            playerUnit.PlayDeathAnimation();
             yield return new WaitForSeconds(2);
         }
 
