@@ -42,6 +42,7 @@ public class BattleSystem : MonoBehaviour
     {
         this.playerParty = playerParty;
         this.wildPiece = wildPiece;
+        isEnemyBattle = false;
         StartCoroutine( SetUpBattle());
     }
 
