@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 233135c6c3bcf3d47a476de5226b7214, type: 3}
+  m_Name: Boss1
+  m_EditorClassIdentifier: 
+  pieceName: Humen
+  description: 
+  frontSprite: {fileID: 21300000, guid: 748b6b1608248184f93c2f324b38707a, type: 3}
+  backSprite: {fileID: 21300000, guid: 748b6b1608248184f93c2f324b38707a, type: 3}
+  type1: 0
+  type2: 0
+  maxHP: 0
+  attack: 0
+  defense: 0
+  ultAttack: 0
+  ultDefense: 0
+  speed: 0
+  learnableAbilities: []
