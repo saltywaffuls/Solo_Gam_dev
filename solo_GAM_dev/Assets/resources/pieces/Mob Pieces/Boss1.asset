@@ -12,16 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 233135c6c3bcf3d47a476de5226b7214, type: 3}
   m_Name: Boss1
   m_EditorClassIdentifier: 
-  pieceName: Humen
+  pieceName: The Final Dark God
   description: 
   frontSprite: {fileID: 21300000, guid: 748b6b1608248184f93c2f324b38707a, type: 3}
   backSprite: {fileID: 21300000, guid: 748b6b1608248184f93c2f324b38707a, type: 3}
-  type1: 0
-  type2: 0
-  maxHP: 0
-  attack: 0
-  defense: 0
-  ultAttack: 0
-  ultDefense: 0
-  speed: 0
-  learnableAbilities: []
+  type1: 7
+  type2: 1
+  maxHP: 50
+  attack: 1
+  defense: 1
+  ultAttack: 1
+  ultDefense: 1
+  speed: 100
+  learnableAbilities:
+  - abilityBase: {fileID: 11400000, guid: 887a43d86f969ed4797322314e8c3bec, type: 2}
+    level: 1
