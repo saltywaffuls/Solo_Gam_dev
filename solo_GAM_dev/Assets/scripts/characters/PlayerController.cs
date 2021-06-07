@@ -44,6 +44,8 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        character.HandleUpdate();
+
         if (Input.GetKeyDown(KeyCode.Z))
             Interact();
 

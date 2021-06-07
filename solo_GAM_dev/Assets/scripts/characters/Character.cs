@@ -18,15 +18,15 @@ public class Character : MonoBehaviour
     public IEnumerator Move(Vector2 moveVec, Action OnMoveOver = null)
     {
         animator.MoveX = Mathf.Clamp(moveVec.x, -1f, 1f);
-        animator.MoveY = Mathf.Clamp(moveVec.x, -1f, 1f);
+        animator.MoveY = Mathf.Clamp(moveVec.y, -1f, 1f);
 
         var targetPos = transform.position;
         targetPos.x += moveVec.x;
         targetPos.y += moveVec.y;
 
 
-        // rplace with !IsPathClear
-        if (!IsWalkable(targetPos))
+        // rplace with !IsPathClear old !IsWalkable
+        if (!IsPathClear(targetPos))
             yield break;
 
         // ep 29 6:50
