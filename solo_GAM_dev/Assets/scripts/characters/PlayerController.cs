@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] string names;
     [SerializeField] Sprite sprite;
 
+    const float offsetY = 0.3f;
+
     public event Action OnEncountered;
     public event Action<Collider2D> OnEnterEnemyView;
 
@@ -75,7 +77,7 @@ public class PlayerController : MonoBehaviour
     //looks for encoter when hits colider land tile
     private void CheckForEncounters()
     {
-        if(Physics2D.OverlapCircle(transform.position, 0.2f, GameLayer.i.GrassLayer) != null)
+        if(Physics2D.OverlapCircle(transform.position - new Vector3(0, offsetY), 0.2f, GameLayer.i.GrassLayer) != null)
         {
            if (UnityEngine.Random.Range(1, 101) <= 10)
            {
@@ -89,7 +91,7 @@ public class PlayerController : MonoBehaviour
     //looks for encoter when hits colider of enemy
     private void CheckIfInEnemyView()
     {
-        var collider = Physics2D.OverlapCircle(transform.position, 0.2f, GameLayer.i.FovLayer);
+        var collider = Physics2D.OverlapCircle(transform.position - new Vector3(0, offsetY), 0.2f, GameLayer.i.FovLayer);
         if (collider != null)
         {
             character.Animator.IsMoving = false;

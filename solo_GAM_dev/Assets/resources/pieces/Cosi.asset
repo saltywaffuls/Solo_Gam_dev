@@ -24,6 +24,8 @@ MonoBehaviour:
   ultAttack: 66
   ultDefense: 56
   speed: 40
+  expYield: 0
+  growthRate: 1
   learnableAbilities:
   - abilityBase: {fileID: 11400000, guid: 1988e7ef208d2d045a94cc9bf4e0a649, type: 2}
     level: 1

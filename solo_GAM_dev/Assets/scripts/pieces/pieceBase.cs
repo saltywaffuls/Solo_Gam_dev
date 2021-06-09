@@ -27,11 +27,28 @@ public class PieceBase : ScriptableObject
     [SerializeField] int ultDefense;
     [SerializeField] int speed;
 
+    [SerializeField] int expYield;
+    [SerializeField] GrowthRate growthRate;
+
 
     [SerializeField] List<LearnableAbility> learnableAbilities;
 
+    //growth rate formulas
+    public int GetExpForLevel(int level)
+    {
+        if (growthRate == GrowthRate.Fast)
+        {
+            return 4 * (level * level * level) / 5;
+        }
+        else if  (growthRate == GrowthRate.MediumFast)
+        {
+            return level * level * level;
+        }
 
-    //propertys
+        return -1;
+    }
+
+    //propertys ( exposes the varbales so other scrips can use them
     public string Name
     {
         get { return pieceName; }
@@ -98,6 +115,13 @@ public class PieceBase : ScriptableObject
         get { return learnableAbilities; }
     }
 
+    public int ExpYield
+    {
+        get { return expYield; }
+    }
+
+    public GrowthRate GrowthRate => growthRate;
+
 }
 
 //types
@@ -112,6 +136,11 @@ public enum PieceType
     Light,
     Dark,
 }
+
+public enum GrowthRate
+{
+    Fast, MediumFast,
+} 
 
 public enum Stat
 {

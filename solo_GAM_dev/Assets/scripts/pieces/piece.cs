@@ -26,6 +26,7 @@ public class Piece
         }
      }
 
+    public int Exp { get; set; }
     public int HP { get; set; }
     public List<Ability> abilities { get; set; }
     public Ability CurrentAbility { get; set; }
@@ -55,6 +56,8 @@ public class Piece
             if (abilities.Count >= 4)
                 break;
         }
+
+        Exp = Base.GetExpForLevel(Level);
 
         CalculateStates();
         HP = MaxHP;
@@ -125,6 +128,17 @@ public class Piece
 
             Debug.Log($"{stat} has been bossted to {StatBoosts[stat]}");
         }
+    }
+
+    public bool CheckForLevelUp()
+    {
+        if (Exp > Base.GetExpForLevel(level + 1))
+        {
+            ++level;
+            return true;
+        }
+
+        return false;
     }
 
     //property level formulas

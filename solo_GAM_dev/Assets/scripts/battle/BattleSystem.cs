@@ -291,12 +291,7 @@ public class BattleSystem : MonoBehaviour
             //cheeks to see if its dead
             if (targetUnit.Piece.HP <= 0)
             {
-                yield return dialogBox.TypeDialog($"{targetUnit.Piece.Base.Name} dead");
-                targetUnit.PlayDeathAnimation();
-                yield return new WaitForSeconds(2f);
-
-                CheckForBattleOver(targetUnit);
-
+                yield return HandlePieceDeath(targetUnit);
             }
 
         }
@@ -316,6 +311,41 @@ public class BattleSystem : MonoBehaviour
             var message = piece.statusChanges.Dequeue();
             yield return dialogBox.TypeDialog(message);
         }
+    }
+
+
+    IEnumerator HandlePieceDeath(BattleUnit deadUnit)
+    {
+        yield return dialogBox.TypeDialog($"{deadUnit.Piece.Base.Name} dead");
+        deadUnit.PlayDeathAnimation();
+        yield return new WaitForSeconds(2f);
+
+        if (!deadUnit.IsPlayerUnit)
+        {
+            //exp
+            int expYield = deadUnit.Piece.Base.ExpYield;
+            int enemyLevel = deadUnit.Piece.Level;
+            float enemyBonus = (isEnemyBattle) ? 1.5f : 1f;
+
+            int expGain = Mathf.FloorToInt((expYield * enemyLevel * enemyBonus) / 7);
+            playerUnit.Piece.Exp += expGain;
+            yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} gained {expGain} knowledge");
+            yield return playerUnit.Hud.SetExpSmooth();
+
+            //level up check
+            while (playerUnit.Piece.CheckForLevelUp())
+            {
+                playerUnit.Hud.SetLevel();
+                yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} grew to knowledge {playerUnit.Piece.Level}");
+
+                yield return playerUnit.Hud.SetExpSmooth(true);
+            }
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        CheckForBattleOver(deadUnit);
+
     }
 
     void CheckForBattleOver(BattleUnit deadUnit)
@@ -360,11 +390,7 @@ public class BattleSystem : MonoBehaviour
         yield return sourceUnit.Hud.UpdateHP();
         if (sourceUnit.Piece.HP <= 0)
         {
-            yield return dialogBox.TypeDialog($"{sourceUnit.Piece.Base.Name} dead");
-            sourceUnit.PlayDeathAnimation();
-            yield return new WaitForSeconds(2f);
-
-            CheckForBattleOver(sourceUnit);
+            yield return HandlePieceDeath(sourceUnit);
             yield return new WaitUntil(() => state == BattleState.RunningTurn);
         }
     }
