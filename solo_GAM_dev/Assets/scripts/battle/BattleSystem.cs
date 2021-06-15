@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 //defines states
-public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, PartyScreen, AboutToUse, BattleOver }
+public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, PartyScreen, AboutToUse, AbilityForget, BattleOver }
 public enum BattleAction { Ability, SwitchPiece, Useitem, flee}
 
 public class BattleSystem : MonoBehaviour
@@ -17,6 +18,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] PartyScreen partyscreen;
     [SerializeField] Image playerImage;
     [SerializeField] Image enemyImage;
+    [SerializeField] AbilitySelectionUI AbilitySelectionUI;
 
     public event Action<bool> OnBattleOver;
 
@@ -37,6 +39,7 @@ public class BattleSystem : MonoBehaviour
     EnemyController enemy;
 
     int escapeAttempts;
+    AbilityBase abilityToLearn;
 
     public void StartBattle(PieceParty playerParty, Piece wildPiece)
     {
@@ -75,6 +78,31 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.AboutToUse)
         {
             HandleAboutToUse();
+        }
+        else if (state == BattleState.AbilityForget)
+        {
+            Action<int> onAbilitySelected = (abilityIndex) =>
+            {
+                AbilitySelectionUI.gameObject.SetActive(false);
+                if (abilityIndex == PieceBase.MaxNumOfAbilties)
+                {
+                    //dont leanr ability
+                    StartCoroutine(dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} did not devlope {abilityToLearn.Name}"));
+                }
+                else
+                {
+                    //forget move learns it
+                    var selectedAbility = playerUnit.Piece.abilities[abilityIndex].Base;
+                    StartCoroutine(dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} scrapted {selectedAbility.Name} and devloped {abilityToLearn.Name}"));
+
+                    playerUnit.Piece.abilities[abilityIndex] = new Ability(abilityToLearn);
+                }
+
+                abilityToLearn = null;
+                state = BattleState.RunningTurn;
+            };
+
+            AbilitySelectionUI.HandleAbilitySelection(onAbilitySelected);
         }
     }
 
@@ -177,6 +205,16 @@ public class BattleSystem : MonoBehaviour
         dialogBox.EnableChoiceBox(true);
     }
 
+    IEnumerator ChooseAbilityToForget(Piece piece, AbilityBase newAbility)
+    {
+        state = BattleState.Busy;
+        yield return dialogBox.TypeDialog($"Devlope new ablity");
+        AbilitySelectionUI.gameObject.SetActive(true);
+        AbilitySelectionUI.SetAbilityData(piece.abilities.Select(x => x.Base).ToList(), newAbility);
+        abilityToLearn = newAbility;
+
+        state = BattleState.AbilityForget;
+    }
 
     IEnumerator RunTurns(BattleAction playerAction)
     {
@@ -337,6 +375,27 @@ public class BattleSystem : MonoBehaviour
             {
                 playerUnit.Hud.SetLevel();
                 yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} grew to knowledge {playerUnit.Piece.Level}");
+
+                // try to learn new ability
+                var newAbility = playerUnit.Piece.GetLearnableAbilityAtCurrLevel();
+                if(newAbility != null)
+                {
+                    if(playerUnit.Piece.abilities.Count < PieceBase.MaxNumOfAbilties)
+                    {
+                        playerUnit.Piece.LearnAbility(newAbility);
+                        yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} developed {newAbility.AbilityBase.Name}");
+                        dialogBox.SetAbilityName(playerUnit.Piece.abilities);
+                    }
+                    else
+                    {
+                        //froget ablity
+                        yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name}  can developed {newAbility.AbilityBase.Name}");
+                        yield return dialogBox.TypeDialog($"but can only have {PieceBase.MaxNumOfAbilties} abilitys");
+                        yield return ChooseAbilityToForget(playerUnit.Piece, newAbility.AbilityBase);
+                        yield return new WaitUntil(() => state != BattleState.AbilityForget);
+                        yield return new WaitForSeconds(2f);
+                    }
+                }
 
                 yield return playerUnit.Hud.SetExpSmooth(true);
             }

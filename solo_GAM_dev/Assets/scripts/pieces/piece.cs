@@ -53,7 +53,7 @@ public class Piece
             if (ability.Level <= Level)
                 abilities.Add(new Ability(ability.AbilityBase));
 
-            if (abilities.Count >= 4)
+            if (abilities.Count >= PieceBase.MaxNumOfAbilties)
                 break;
         }
 
@@ -146,6 +146,20 @@ public class Piece
     {
         //base attack mutpled by the level divided by 100 add five
         get { return GetStat(Stat.Attack); }
+    }
+
+    public LearnableAbility GetLearnableAbilityAtCurrLevel() 
+    {
+        return Base.LearnableAbilities.Where(x => x.Level == level).FirstOrDefault();
+    }
+
+    public void LearnAbility(LearnableAbility abilityToLearn)
+    {
+        if (abilities.Count > PieceBase.MaxNumOfAbilties)
+            return;
+
+        //dont know if code is right in base ep 38 6:47
+        abilities.Add(new Ability(abilityToLearn.AbilityBase));
     }
 
     public int MaxHP { get; private set; }

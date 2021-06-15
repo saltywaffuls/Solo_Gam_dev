@@ -33,6 +33,8 @@ public class PieceBase : ScriptableObject
 
     [SerializeField] List<LearnableAbility> learnableAbilities;
 
+    public static int MaxNumOfAbilties { get; set; } = 4;
+
     //growth rate formulas
     public int GetExpForLevel(int level)
     {
