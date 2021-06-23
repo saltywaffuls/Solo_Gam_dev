@@ -9,10 +9,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] string names;
     [SerializeField] Sprite sprite;
 
-    const float offsetY = 0.3f;
 
-    public event Action OnEncountered;
-    public event Action<Collider2D> OnEnterEnemyView;
 
     private bool isMoving;
     private Vector2 input;
@@ -70,35 +67,20 @@ public class PlayerController : MonoBehaviour
 
     public void OnMoveOver()
     {
-        CheckForEncounters();
-        CheckIfInEnemyView();
-    }
+        var colliders = Physics2D.OverlapCircleAll(transform.position - new Vector3(0, character.offSetY), 0.2f, GameLayer.i.TriggerableLayer);
 
-    //looks for encoter when hits colider land tile
-    private void CheckForEncounters()
-    {
-        if(Physics2D.OverlapCircle(transform.position - new Vector3(0, offsetY), 0.2f, GameLayer.i.GrassLayer) != null)
+        foreach (var collider in colliders)
         {
-           if (UnityEngine.Random.Range(1, 101) <= 10)
-           {
-               character.Animator.IsMoving =false;
-                OnEncountered();
-                Debug.Log("enconter");
-           }
+            var triggerable = collider.GetComponent<IPlayerTriggerable>();
+            if(triggerable != null)
+            {
+                character.Animator.IsMoving = false;
+                triggerable.OnPlayerTriggered(this);
+                break;
+            }
         }
     }
 
-    //looks for encoter when hits colider of enemy
-    private void CheckIfInEnemyView()
-    {
-        var collider = Physics2D.OverlapCircle(transform.position - new Vector3(0, offsetY), 0.2f, GameLayer.i.FovLayer);
-        if (collider != null)
-        {
-            character.Animator.IsMoving = false;
-            OnEnterEnemyView?.Invoke(collider);
-            Debug.Log("i see you");
-        }
-    }
 
     public string Name
     {
@@ -109,4 +91,6 @@ public class PlayerController : MonoBehaviour
     {
         get { return sprite; }
     }
+
+    public Character Character => character;
 }
