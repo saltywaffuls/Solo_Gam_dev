@@ -12,6 +12,8 @@ public class GameController : MonoBehaviour
     GameState stateBeforePaused;
 
     public static GameController Instance { get; private set; }
+    public SceneDetails currentScene { get; private set; }
+    public SceneDetails prevScene { get; private set; }
 
     [SerializeReference] PlayerController playerController;
     [SerializeReference] BattleSystem battleSystem;
@@ -80,7 +82,7 @@ public class GameController : MonoBehaviour
         mainCamera.gameObject.SetActive(false);
 
         var playerParty = playerController.GetComponent<PieceParty>();
-        var wildPiece = FindObjectOfType<MapArea>().GetComponent<MapArea>().GetRandomWildPiece();
+        var wildPiece = currentScene.GetComponent<MapArea>().GetRandomWildPiece();
 
         battleSystem.StartBattle(playerParty, wildPiece);
     }
@@ -117,4 +119,9 @@ public class GameController : MonoBehaviour
         mainCamera.gameObject.SetActive(true);
     }
 
+    public void SetCurrentScene(SceneDetails currScene)
+    {
+        prevScene = currentScene;
+        currentScene = currScene;
+    }
 }

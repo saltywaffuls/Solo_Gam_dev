@@ -6,6 +6,7 @@ public class EnemyFov : MonoBehaviour, IPlayerTriggerable
 {
     public void OnPlayerTriggered(PlayerController player)
     {
+        player.Character.Animator.IsMoving = false;
         GameController.Instance.OnEnterEnemyView(GetComponentInParent<EnemyController>());
     }
 }
