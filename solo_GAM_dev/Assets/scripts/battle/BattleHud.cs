@@ -49,14 +49,14 @@ public class BattleHud : MonoBehaviour
     //sets the text for what status
     void SetStatusText()
     {
-        if (_piece.status == null)
+        if (_piece.Status == null)
         {
             statusText.text = "";
         }
         else
         {
-            statusText.text = _piece.status.Id.ToString().ToUpper();
-            statusText.color = statusColors[_piece.status.Id];
+            statusText.text = _piece.Status.Id.ToString().ToUpper();
+            statusText.color = statusColors[_piece.Status.Id];
         }
     }
 

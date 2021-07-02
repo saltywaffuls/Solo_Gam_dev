@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, ISavable
 {
 
     [SerializeField] string names;
@@ -80,6 +81,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public object CaptureState()
+    {
+        var saveData = new PlayerSaveData()
+        {
+            position = new float[] { transform.position.x, transform.position.y },
+            pieces = GetComponent<PieceParty>().Pieces.Select(p => p.GetSaveData()).ToList()
+        };
+        return saveData;
+    }
+
+    public void RestoreState(object state)
+    {
+        var saveData = (PlayerSaveData)state;
+
+        // restore postion
+        var pos = saveData.position;
+        transform.position = new Vector3(pos[0], pos[1]);
+
+        // restore party
+        GetComponent<PieceParty>().Pieces = saveData.pieces.Select(s => new Piece(s)).ToList();
+    }
 
     public string Name
     {
@@ -92,4 +114,11 @@ public class PlayerController : MonoBehaviour
     }
 
     public Character Character => character;
+}
+
+[Serializable]
+public class PlayerSaveData 
+{
+    public float[] position;
+    public List<PieceSaveData> pieces;
 }

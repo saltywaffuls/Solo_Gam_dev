@@ -13,6 +13,10 @@ public class PieceParty : MonoBehaviour
         {
             return pieces;
         }
+        set
+        {
+            pieces = value;
+        }
     }
 
 

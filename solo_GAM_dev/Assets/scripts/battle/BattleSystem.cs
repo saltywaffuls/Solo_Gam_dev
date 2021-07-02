@@ -92,10 +92,10 @@ public class BattleSystem : MonoBehaviour
                 else
                 {
                     //forget move learns it
-                    var selectedAbility = playerUnit.Piece.abilities[abilityIndex].Base;
+                    var selectedAbility = playerUnit.Piece.Abilities[abilityIndex].Base;
                     StartCoroutine(dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} scrapted {selectedAbility.Name} and devloped {abilityToLearn.Name}"));
 
-                    playerUnit.Piece.abilities[abilityIndex] = new Ability(abilityToLearn);
+                    playerUnit.Piece.Abilities[abilityIndex] = new Ability(abilityToLearn);
                 }
 
                 abilityToLearn = null;
@@ -117,7 +117,7 @@ public class BattleSystem : MonoBehaviour
             playerUnit.SetUp(playerParty.GetHealthyPiece());
             enemyUnit.SetUp(wildPiece);
 
-            dialogBox.SetAbilityName(playerUnit.Piece.abilities);
+            dialogBox.SetAbilityName(playerUnit.Piece.Abilities);
             yield return dialogBox.TypeDialog($"a {enemyUnit.Piece.Base.Name} is reveald.");
         }
         else
@@ -150,7 +150,7 @@ public class BattleSystem : MonoBehaviour
             playerUnit.SetUp(playerPiece);
 
             yield return dialogBox.TypeDialog($"tag in {playerPiece.Base.Name}");
-            dialogBox.SetAbilityName(playerUnit.Piece.abilities);
+            dialogBox.SetAbilityName(playerUnit.Piece.Abilities);
         }
 
         escapeAttempts = 0;
@@ -210,7 +210,7 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.Busy;
         yield return dialogBox.TypeDialog($"Devlope new ablity");
         AbilitySelectionUI.gameObject.SetActive(true);
-        AbilitySelectionUI.SetAbilityData(piece.abilities.Select(x => x.Base).ToList(), newAbility);
+        AbilitySelectionUI.SetAbilityData(piece.Abilities.Select(x => x.Base).ToList(), newAbility);
         abilityToLearn = newAbility;
 
         state = BattleState.AbilityForget;
@@ -223,7 +223,7 @@ public class BattleSystem : MonoBehaviour
         if(playerAction == BattleAction.Ability)
         {
             //gets ability
-            playerUnit.Piece.CurrentAbility = playerUnit.Piece.abilities[currentAbility];
+            playerUnit.Piece.CurrentAbility = playerUnit.Piece.Abilities[currentAbility];
             enemyUnit.Piece.CurrentAbility = enemyUnit.Piece.GetRandomAbility();
 
             int playerAbilityPriority = playerUnit.Piece.CurrentAbility.Base.Priority;
@@ -380,11 +380,11 @@ public class BattleSystem : MonoBehaviour
                 var newAbility = playerUnit.Piece.GetLearnableAbilityAtCurrLevel();
                 if(newAbility != null)
                 {
-                    if(playerUnit.Piece.abilities.Count < PieceBase.MaxNumOfAbilties)
+                    if(playerUnit.Piece.Abilities.Count < PieceBase.MaxNumOfAbilties)
                     {
                         playerUnit.Piece.LearnAbility(newAbility);
                         yield return dialogBox.TypeDialog($"{playerUnit.Piece.Base.Name} developed {newAbility.AbilityBase.Name}");
-                        dialogBox.SetAbilityName(playerUnit.Piece.abilities);
+                        dialogBox.SetAbilityName(playerUnit.Piece.Abilities);
                     }
                     else
                     {
@@ -579,14 +579,14 @@ public class BattleSystem : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.UpArrow))
             currentAbility -= 2;
 
-        currentAbility = Mathf.Clamp(currentAbility, 0, playerUnit.Piece.abilities.Count - 1);
+        currentAbility = Mathf.Clamp(currentAbility, 0, playerUnit.Piece.Abilities.Count - 1);
 
-        dialogBox.UpdateAbilitySelection(currentAbility , playerUnit.Piece.abilities[currentAbility]);
+        dialogBox.UpdateAbilitySelection(currentAbility , playerUnit.Piece.Abilities[currentAbility]);
 
 
         if (Input.GetKeyDown(KeyCode.Z))
         {
-            var ability = playerUnit.Piece.abilities[currentAbility];
+            var ability = playerUnit.Piece.Abilities[currentAbility];
             if (ability.AP == 0) return;
 
             dialogBox.EnableAbilitySelector(false);
@@ -711,7 +711,7 @@ public class BattleSystem : MonoBehaviour
 
         playerUnit.SetUp(newPiece);
 
-        dialogBox.SetAbilityName(newPiece.abilities);
+        dialogBox.SetAbilityName(newPiece.Abilities);
 
         yield return dialogBox.TypeDialog($" {newPiece.Base.Name} is up next.");
 

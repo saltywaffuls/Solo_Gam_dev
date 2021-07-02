@@ -885,6 +885,7 @@ GameObject:
   - component: {fileID: 396234693067101620}
   - component: {fileID: 396234693067101622}
   - component: {fileID: 396234693067101609}
+  - component: {fileID: 4978047870051788898}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -966,6 +967,18 @@ MonoBehaviour:
   portalLayer:
     serializedVersion: 2
     m_Bits: 1024
+--- !u!114 &4978047870051788898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396234693067101621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96ddb908fa7c729419f05867d9550daf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &396234693089793948
 GameObject:
   m_ObjectHideFlags: 0
@@ -4819,11 +4832,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 32f2597ad9f959048a3d028e0c4a4e39, type: 3}
---- !u!4 &396234693166844592 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5338588268001335833, guid: 32f2597ad9f959048a3d028e0c4a4e39, type: 3}
-  m_PrefabInstance: {fileID: 5722330081203638441}
-  m_PrefabAsset: {fileID: 0}
 --- !u!20 &396234692774855558 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 5338588267646604079, guid: 32f2597ad9f959048a3d028e0c4a4e39, type: 3}
@@ -4840,3 +4848,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bb336b61a815a441b76c5a7a7cf02b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &396234693166844592 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5338588268001335833, guid: 32f2597ad9f959048a3d028e0c4a4e39, type: 3}
+  m_PrefabInstance: {fileID: 5722330081203638441}
+  m_PrefabAsset: {fileID: 0}

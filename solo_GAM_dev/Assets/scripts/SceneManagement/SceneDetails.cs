@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,6 +8,8 @@ public class SceneDetails : MonoBehaviour
 {
     [SerializeField] List<SceneDetails> connectedScenes;
     public bool IsLoaded { get; private set; }
+
+    List<SavableEntity> savableEntities;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -24,7 +27,8 @@ public class SceneDetails : MonoBehaviour
             }
 
             // unload scenes that r not connected
-            if(GameController.Instance.prevScene != null)
+            var prevSene = GameController.Instance.prevScene;
+            if (GameController.Instance.prevScene != null)
             {
                 var previoslyloadedScenes = GameController.Instance.prevScene.connectedScenes;
                 foreach(var scene in previoslyloadedScenes)
@@ -32,6 +36,9 @@ public class SceneDetails : MonoBehaviour
                     if (!connectedScenes.Contains(scene) && scene != this)
                         scene.UnloadScene();
                 }
+
+                if (!connectedScenes.Contains(prevSene))
+                    prevSene.UnloadScene();
             }
         }
     }
@@ -40,9 +47,15 @@ public class SceneDetails : MonoBehaviour
     public void loadScene()
     {
         if(!IsLoaded)
-            {
-            SceneManager.LoadSceneAsync(gameObject.name, LoadSceneMode.Additive);
+        {
+            var operation = SceneManager.LoadSceneAsync(gameObject.name, LoadSceneMode.Additive);
             IsLoaded = true;
+
+            operation.completed += (AsyncOperation op) =>
+            {
+                savableEntities = GetSavableEntitiesInScene();
+                SavingSystem.i.RestoreEntityStates(savableEntities);
+            };
         }
     }
 
@@ -51,8 +64,17 @@ public class SceneDetails : MonoBehaviour
     {
         if (IsLoaded)
         {
+            SavingSystem.i.CaptureEntityStates(savableEntities);
+
             SceneManager.UnloadSceneAsync(gameObject.name);
             IsLoaded = false;
         }
+    }
+
+    List<SavableEntity> GetSavableEntitiesInScene()
+    {
+        var currScene = SceneManager.GetSceneByName(gameObject.name);
+        var savableEntities = FindObjectsOfType<SavableEntity>().Where(x => x.gameObject.scene == currScene).ToList();
+        return savableEntities;
     }
 }

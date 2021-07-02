@@ -24,6 +24,9 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        PieceDB.Init();
+        AbilityDB.Init();
         ConditionDB.Init();
     }
 
@@ -50,6 +53,16 @@ public class GameController : MonoBehaviour
         if(state == GameState.FreeRoam)
         {
             playerController.HandleUpdate();
+
+            // save/load 
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                SavingSystem.i.Save("saveSlot1");
+            }
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                SavingSystem.i.Load("saveSlot1");
+            }
         }
         else if( state == GameState.Battle)
         {
