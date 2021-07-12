@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 
-public enum GameState {FreeRoam, Battle, Dialog, Cutscene, Paused}
+public enum GameState {FreeRoam, Battle, Dialog, Menu, PartyScreen, Bag, Cutscene, Paused}
 
 public class GameController : MonoBehaviour
 {
@@ -15,15 +16,21 @@ public class GameController : MonoBehaviour
     public SceneDetails currentScene { get; private set; }
     public SceneDetails prevScene { get; private set; }
 
-    [SerializeReference] PlayerController playerController;
-    [SerializeReference] BattleSystem battleSystem;
-    [SerializeReference] Camera mainCamera;
+    MenuController menuController;
+
+    [SerializeField] PlayerController playerController;
+    [SerializeField] BattleSystem battleSystem;
+    [SerializeField] Camera mainCamera;
+    [SerializeField] PartyScreen partyScreen;
+    [SerializeField] InventoryUI inventoryUI;
 
     EnemyController enemy;
 
     private void Awake()
     {
         Instance = this;
+
+        menuController = GetComponent<MenuController>();
 
         PieceDB.Init();
         AbilityDB.Init();
@@ -34,6 +41,7 @@ public class GameController : MonoBehaviour
     {
         battleSystem.OnBattleOver += EndBattle;
 
+        partyScreen.Init();
 
         DialogManager.Instance.OnShowDialog += () =>
         {
@@ -45,6 +53,13 @@ public class GameController : MonoBehaviour
             if (state == GameState.Dialog)
                 state = GameState.FreeRoam;
         };
+
+        menuController.onBack += () =>
+        {
+            state = GameState.FreeRoam;
+        };
+
+        menuController.onMenuSelected += OnMenuSelected;
     }
 
     private void Update()
@@ -53,6 +68,12 @@ public class GameController : MonoBehaviour
         if(state == GameState.FreeRoam)
         {
             playerController.HandleUpdate();
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                menuController.OpenMenu();
+                state = GameState.Menu;
+            }
 
             // save/load 
             if (Input.GetKeyDown(KeyCode.F1))
@@ -71,6 +92,36 @@ public class GameController : MonoBehaviour
         else if ( state == GameState.Dialog)
         {
             DialogManager.Instance.HandleUpdate();
+        }
+        else if ( state == GameState.Menu)
+        {
+            menuController.HandleUpdates();
+        }
+        else if (state == GameState.PartyScreen)
+        {
+            Action onSelected = () =>
+            {
+                //go to stat screen
+            };
+
+            Action onBack = () =>
+            {
+                partyScreen.gameObject.SetActive(false);
+                state = GameState.FreeRoam;
+            };
+
+            partyScreen.HandleUpdate(onSelected, onBack);
+        }
+        else if (state == GameState.Bag)
+        {
+
+            Action onBack = () =>
+            {
+                inventoryUI.gameObject.SetActive(false);
+                state = GameState.FreeRoam;
+            };
+
+            inventoryUI.HandleUpdate(onBack);
         }
     }
 
@@ -136,5 +187,34 @@ public class GameController : MonoBehaviour
     {
         prevScene = currentScene;
         currentScene = currScene;
+    }
+
+    void OnMenuSelected(int selectedItem)
+    {
+        if (selectedItem == 0)
+        {
+            //piece
+            partyScreen.gameObject.SetActive(true);
+            partyScreen.SetPartyData(playerController.GetComponent<PieceParty>().Pieces);
+            state = GameState.PartyScreen;
+        }
+        else if (selectedItem == 1)
+        {
+            //inventory
+            inventoryUI.gameObject.SetActive(true);
+            state = GameState.Bag;
+        }
+        else if (selectedItem == 2)
+        {
+            //save
+            SavingSystem.i.Save("saveSlot1");
+            state = GameState.FreeRoam;
+        }
+        else if (selectedItem == 3)
+        {
+            //load
+            SavingSystem.i.Load("saveSlot1");
+            state = GameState.FreeRoam;
+        }
     }
 }

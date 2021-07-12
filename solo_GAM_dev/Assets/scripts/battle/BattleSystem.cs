@@ -23,10 +23,9 @@ public class BattleSystem : MonoBehaviour
     public event Action<bool> OnBattleOver;
 
     BattleState state;
-    BattleState? prevState;
+    
     int currentAction;
     int currentAbility;
-    int currentUnit;
     bool aboutToUseChoice = true;
 
     PieceParty playerParty;
@@ -180,7 +179,7 @@ public class BattleSystem : MonoBehaviour
     //opens the party select ui
     void OpenPartyUI()
     {
-
+        partyscreen.CalledFrom = state;
         state = BattleState.PartyScreen;
         partyscreen.SetPartyData(playerParty.Pieces);
         partyscreen.gameObject.SetActive(true);
@@ -260,7 +259,7 @@ public class BattleSystem : MonoBehaviour
             //switch pieces code
             if( playerAction == BattleAction.SwitchPiece)
             {
-                var selectedUnit = playerParty.Pieces[currentUnit];
+                var selectedUnit = partyscreen.SelectedUnit;
                 state = BattleState.Busy;
                 yield return SwitchUnit(selectedUnit);
 
@@ -553,7 +552,6 @@ public class BattleSystem : MonoBehaviour
             else if (currentAction == 2)
             {
                 //party
-                prevState = state;
                 OpenPartyUI();
             } 
             else if (currentAction == 3)
@@ -604,23 +602,9 @@ public class BattleSystem : MonoBehaviour
     //controls party selector
     void HandlePartySelection()
     {
-
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-            ++currentUnit;
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-            --currentUnit;
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
-            currentUnit += 2;
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
-            currentUnit -= 2;
-
-        currentUnit = Mathf.Clamp(currentUnit, 0, playerParty.Pieces.Count - 1);
-
-        partyscreen.UpdateUnitSelection(currentUnit);
-
-        if (Input.GetKeyDown(KeyCode.Z))
+        Action onSelected = () =>
         {
-            var selectedUnit = playerParty.Pieces[currentUnit];
+            var selectedUnit = partyscreen.SelectedUnit;
             if (selectedUnit.HP <= 0)
             {
                 partyscreen.SetMessageText("he is no loger with us");
@@ -634,22 +618,25 @@ public class BattleSystem : MonoBehaviour
 
             partyscreen.gameObject.SetActive(false);
 
-            if(prevState == BattleState.ActionSelection)
+            if (partyscreen.CalledFrom == BattleState.ActionSelection)
             {
                 // if switch during turn
-                prevState = null;
                 StartCoroutine(RunTurns(BattleAction.SwitchPiece));
             }
             else
             {
                 //if piece is dead
                 state = BattleState.Busy;
-                StartCoroutine(SwitchUnit(selectedUnit));
+                bool isEnemyAboutToUse = partyscreen.CalledFrom == BattleState.AboutToUse;
+                StartCoroutine(SwitchUnit(selectedUnit, isEnemyAboutToUse));
             }
-        }
-        else if (Input.GetKeyDown(KeyCode.X))
+
+            partyscreen.CalledFrom = null;
+        };
+
+        Action onBack = () =>
         {
-            if(playerUnit.Piece.HP <= 0)
+            if (playerUnit.Piece.HP <= 0)
             {
                 partyscreen.SetMessageText("piece must be in play");
                 return;
@@ -657,15 +644,18 @@ public class BattleSystem : MonoBehaviour
 
             partyscreen.gameObject.SetActive(false);
 
-            if (prevState == BattleState.AboutToUse)
+            if (partyscreen.CalledFrom == BattleState.AboutToUse)
             {
-                prevState = null;
                 StartCoroutine(SendNextEnemyPiece());
             }
             else
                 ActionSelection();
-        }
 
+            partyscreen.CalledFrom = null;
+        
+        };
+
+        partyscreen.HandleUpdate(onSelected, onBack);
     }
 
     // handles the switch option of party after enemy piece dies
@@ -682,7 +672,6 @@ public class BattleSystem : MonoBehaviour
             if(aboutToUseChoice == true)
             {
                 //yes
-                prevState = BattleState.AboutToUse;
                 OpenPartyUI();
             }
             else
@@ -700,7 +689,7 @@ public class BattleSystem : MonoBehaviour
 
 
     //switches out the pices in play
-    IEnumerator SwitchUnit(Piece newPiece)
+    IEnumerator SwitchUnit(Piece newPiece, bool isEnemyAboutToUse = false)
     {
         if (playerUnit.Piece.HP > 0)
         {
@@ -710,20 +699,13 @@ public class BattleSystem : MonoBehaviour
         }
 
         playerUnit.SetUp(newPiece);
-
         dialogBox.SetAbilityName(newPiece.Abilities);
-
         yield return dialogBox.TypeDialog($" {newPiece.Base.Name} is up next.");
 
-        if (prevState == null)
-        {
-            state = BattleState.RunningTurn;
-        }
-        else if (prevState == BattleState.AboutToUse)
-        {
-            prevState = null;
+        if (isEnemyAboutToUse)
             StartCoroutine(SendNextEnemyPiece());
-        }
+        else
+            state = BattleState.RunningTurn;
     }
 
     IEnumerator SendNextEnemyPiece()
