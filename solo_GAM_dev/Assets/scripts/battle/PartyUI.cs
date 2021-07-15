@@ -10,24 +10,29 @@ public class PartyUI : MonoBehaviour
     [SerializeReference] Text levelText;
     [SerializeReference] HPBar hpBar;
 
-    [SerializeField] Color highlightedColor;
-
     Piece _piece;
 
-    // shows data of pice in ui
-    public void SetData(Piece piece)
+    
+    public void Init(Piece piece)
     {
         _piece = piece;
+        UpdateData();
 
-        nameText.text = piece.Base.Name;
-        levelText.text = "lvl" + piece.Level;
-        hpBar.SetHP((float)piece.HP / piece.MaxHP);
+        _piece.OnHPChanged += UpdateData;
+    }
+
+    // shows data of pice in ui
+    void UpdateData()
+    {
+        nameText.text = _piece.Base.Name;
+        levelText.text = "lvl" + _piece.Level;
+        hpBar.SetHP((float)_piece.HP / _piece.MaxHP);
     }
 
     public void SetSelected(bool selected)
     {
         if (selected)
-            nameText.color = highlightedColor;
+            nameText.color = GlobalSettings.i.HighlightedColor;
         else
             nameText.color = Color.black;
     }

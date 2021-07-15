@@ -27,7 +27,7 @@ public class ConditionDB
                 StartMessage = "A Dot is appied",
                 OnAfterTurn = (Piece piece) =>
                 {
-                    piece.UpdateHP(piece.MaxHP / 8);
+                    piece.DecreaseHP(piece.MaxHP / 8);
                     piece.statusChanges.Enqueue($"{piece.Base.Name} Dot has ticked");
                 }
             }
@@ -41,7 +41,7 @@ public class ConditionDB
                 StartMessage = "super dot",
                 OnAfterTurn = (Piece piece) =>
                 {
-                    piece.UpdateHP(piece.MaxHP / 16);
+                    piece.DecreaseHP(piece.MaxHP / 16);
                     piece.statusChanges.Enqueue($"{piece.Base.Name} very soul hurts");
                 }
             }
@@ -143,7 +143,7 @@ public class ConditionDB
 
                     // hurt by confution
                     piece.statusChanges.Enqueue($"{piece.Base.Name} is confused");
-                    piece.UpdateHP(piece.MaxHP / 8);
+                    piece.DecreaseHP(piece.MaxHP / 8);
                     piece.statusChanges.Enqueue($"hit itself");
                     return false;
                 }

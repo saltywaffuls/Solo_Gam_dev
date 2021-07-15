@@ -2,13 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : MonoBehaviour, Interactable, ISavable
 {
     [SerializeField] string names;
     [SerializeField] Sprite sprite;
     [SerializeField] Dialog dialog;
+    [SerializeField] Dialog dialogAfterBattle;
     [SerializeField] GameObject alert;
     [SerializeField] GameObject fov;
+
+    //state
+    bool battleLost = false;
+    [SerializeField] bool stillAlive = false;
 
     Character character;
 
@@ -20,6 +25,28 @@ public class EnemyController : MonoBehaviour
     private void Start()
     {
         SetFovRotation(character.Animator.DefultDirection);
+    }
+
+    private void Update()
+    {
+        character.HandleUpdate(); 
+    }
+
+    public void Interact(Transform initiator)
+    {
+        character.LookTowerds(initiator.position);
+
+        if (!battleLost)
+        {
+            StartCoroutine(DialogManager.Instance.ShowDialog(dialog, () =>
+            {
+                GameController.Instance.StartEnemyBattle(this);
+            }));
+        }
+        else
+        {
+            StartCoroutine(DialogManager.Instance.ShowDialog(dialogAfterBattle));
+        }
     }
 
     public IEnumerator TriggerEnemyBattle(PlayerController player)
@@ -43,6 +70,23 @@ public class EnemyController : MonoBehaviour
         }));
     }
 
+    public void BattleLost()
+    {
+        battleLost = true;
+        if(stillAlive)
+        {
+            fov.gameObject.SetActive(false);
+        }
+        else
+        {
+            //this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            this.gameObject.SetActive(false);
+        }
+        
+        
+    }
+
+
     public void SetFovRotation(FacingDirection dir)
     {
         float angle = 0f;
@@ -54,6 +98,20 @@ public class EnemyController : MonoBehaviour
             angle = 270f;
 
         fov.transform.eulerAngles = new Vector3(0f, 0f, angle);
+    }
+
+    public object CaptureState()
+    {
+        return battleLost;
+    }
+
+    public void RestoreState(object state)
+    {
+        battleLost = (bool)state;
+
+        // fix when enemy dies battleLost gets set to true and game obkect turns off. the player then saves and relouds. this turns battle lost back to true tuning on the game object. ep 46 15:12
+        if(battleLost)
+            this.gameObject.SetActive(false);
     }
 
     public string Name

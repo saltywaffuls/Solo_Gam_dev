@@ -1,16 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, ISavable
 {
 
     [SerializeField] string names;
     [SerializeField] Sprite sprite;
 
-    public event Action OnEncountered;
-    public event Action<Collider2D> OnEnterEnemyView;
+
 
     private bool isMoving;
     private Vector2 input;
@@ -44,6 +44,8 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        character.HandleUpdate();
+
         if (Input.GetKeyDown(KeyCode.Z))
             Interact();
 
@@ -60,40 +62,45 @@ public class PlayerController : MonoBehaviour
         var collider = Physics2D.OverlapCircle(intractPos, 0.3f, GameLayer.i.InteractableLayer);
         if(collider != null)
         {
-            collider.GetComponent<Interactable>()?.Interact();
+            collider.GetComponent<Interactable>()?.Interact(transform);
         }
     }
 
     public void OnMoveOver()
     {
-        CheckForEncounters();
-        CheckIfInEnemyView();
-    }
+        var colliders = Physics2D.OverlapCircleAll(transform.position - new Vector3(0, character.offSetY), 0.2f, GameLayer.i.TriggerableLayer);
 
-    //looks for encoter when hits colider land tile
-    private void CheckForEncounters()
-    {
-        if(Physics2D.OverlapCircle(transform.position, 0.2f, GameLayer.i.GrassLayer) != null)
+        foreach (var collider in colliders)
         {
-           if (UnityEngine.Random.Range(1, 101) <= 10)
-           {
-               character.Animator.IsMoving =false;
-                OnEncountered();
-                Debug.Log("enconter");
-           }
+            var triggerable = collider.GetComponent<IPlayerTriggerable>();
+            if(triggerable != null)
+            {
+                triggerable.OnPlayerTriggered(this);
+                break;
+            }
         }
     }
 
-    //looks for encoter when hits colider of enemy
-    private void CheckIfInEnemyView()
+    public object CaptureState()
     {
-        var collider = Physics2D.OverlapCircle(transform.position, 0.2f, GameLayer.i.FovLayer);
-        if (collider != null)
+        var saveData = new PlayerSaveData()
         {
-            character.Animator.IsMoving = false;
-            OnEnterEnemyView?.Invoke(collider);
-            Debug.Log("i see you");
-        }
+            position = new float[] { transform.position.x, transform.position.y },
+            pieces = GetComponent<PieceParty>().Pieces.Select(p => p.GetSaveData()).ToList()
+        };
+        return saveData;
+    }
+
+    public void RestoreState(object state)
+    {
+        var saveData = (PlayerSaveData)state;
+
+        // restore postion
+        var pos = saveData.position;
+        transform.position = new Vector3(pos[0], pos[1]);
+
+        // restore party
+        GetComponent<PieceParty>().Pieces = saveData.pieces.Select(s => new Piece(s)).ToList();
     }
 
     public string Name
@@ -105,4 +112,13 @@ public class PlayerController : MonoBehaviour
     {
         get { return sprite; }
     }
+
+    public Character Character => character;
+}
+
+[Serializable]
+public class PlayerSaveData 
+{
+    public float[] position;
+    public List<PieceSaveData> pieces;
 }

@@ -16,4 +16,26 @@ public class Ability
         AP = pBase.Ap;
     }
 
+    public Ability(AbilitySaveData saveData)
+    {
+        Base = AbilityDB.GetAbilityByName(saveData.name);
+        AP = saveData.ap;
+    }
+
+    public AbilitySaveData GetSaveData()
+    {
+        var saveData = new AbilitySaveData()
+        {
+            name = Base.Name,
+            ap = AP
+        };
+        return saveData;
+    }
+}
+
+[System.Serializable]
+public class AbilitySaveData
+{
+    public string name;
+    public int ap;
 }

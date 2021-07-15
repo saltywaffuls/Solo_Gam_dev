@@ -26,12 +26,13 @@ public class Piece
         }
      }
 
+    public int Exp { get; set; }
     public int HP { get; set; }
-    public List<Ability> abilities { get; set; }
+    public List<Ability> Abilities { get; set; }
     public Ability CurrentAbility { get; set; }
     public Dictionary<Stat, int> Stats { get; private set; }
     public Dictionary<Stat, int> StatBoosts { get; private set; }
-    public Condition status { get; private set; }
+    public Condition Status { get; private set; }
     public int statusTime { get; set; }
     public Condition VolatileStatus { get; private set; }
     public int VolatileStatusTime { get; set; }
@@ -39,29 +40,69 @@ public class Piece
 
     public Queue<string> statusChanges { get; private set; } = new Queue<string>();
 
-    public bool HPChange { get; set; }
     public event System.Action OnStatusChanged;
+    public event System.Action OnHPChanged;
 
     public void Init()
     {
         
         // generate abilties
-        abilities = new List<Ability>();
+        Abilities = new List<Ability>();
         foreach (var ability in Base.LearnableAbilities)
         {
             if (ability.Level <= Level)
-                abilities.Add(new Ability(ability.AbilityBase));
+                Abilities.Add(new Ability(ability.AbilityBase));
 
-            if (abilities.Count >= 4)
+            if (Abilities.Count >= PieceBase.MaxNumOfAbilties)
                 break;
         }
+
+        Exp = Base.GetExpForLevel(Level);
 
         CalculateStates();
         HP = MaxHP;
 
+        statusChanges = new Queue<string>();
         ResetStatBoost();
-        status = null;
+        Status = null;
         VolatileStatus = null;
+    }
+
+    // restores the save data
+    public Piece(PieceSaveData saveData)
+    {
+        _base = PieceDB.GetPieceByName(saveData.name);
+        HP = saveData.hp;
+        level = saveData.level;
+        Exp = saveData.exp;
+
+        if (saveData.statusId != null)
+            Status = ConditionDB.Conditions[saveData.statusId.Value];
+        else
+            Status = null;
+
+        Abilities = saveData.abilities.Select(s => new Ability(s)).ToList();
+
+        CalculateStates();
+        statusChanges = new Queue<string>();
+        ResetStatBoost();
+        VolatileStatus = null;
+    }
+
+    //coverst curret pice class into save data class
+    public PieceSaveData GetSaveData()
+    {
+        var saveData = new PieceSaveData()
+        {
+            name = Base.Name,
+            hp = HP,
+            level = Level,
+            exp = Exp,
+            statusId = Status?.Id,
+            abilities = Abilities.Select(m => m.GetSaveData()).ToList()
+        };
+
+        return saveData;
     }
 
     //math and formula for stats
@@ -127,11 +168,36 @@ public class Piece
         }
     }
 
+    public bool CheckForLevelUp()
+    {
+        if (Exp > Base.GetExpForLevel(level + 1))
+        {
+            ++level;
+            return true;
+        }
+
+        return false;
+    }
+
     //property level formulas
     public int Attack
     {
         //base attack mutpled by the level divided by 100 add five
         get { return GetStat(Stat.Attack); }
+    }
+
+    public LearnableAbility GetLearnableAbilityAtCurrLevel() 
+    {
+        return Base.LearnableAbilities.Where(x => x.Level == level).FirstOrDefault();
+    }
+
+    public void LearnAbility(LearnableAbility abilityToLearn)
+    {
+        if (Abilities.Count > PieceBase.MaxNumOfAbilties)
+            return;
+
+        //dont know if code is right in base ep 38 6:47
+        Abilities.Add(new Ability(abilityToLearn.AbilityBase));
     }
 
     public int MaxHP { get; private set; }
@@ -190,15 +256,21 @@ public class Piece
         float d = a * ability.Base.Power * ((float)attack / defense) + 2;
         int damage = Mathf.FloorToInt(d * modifiers);
 
-        UpdateHP(damage);
+        DecreaseHP(damage);
 
         return damageDetails;
     }
 
-    public void UpdateHP(int damage)
+    public void IecreaseHP(int amount)
+    {
+        HP = Mathf.Clamp(HP + amount, 0, MaxHP);
+        OnHPChanged?.Invoke();
+    }
+
+    public void DecreaseHP(int damage)
     {
         HP = Mathf.Clamp(HP - damage, 0, MaxHP);
-        HPChange = true;
+        OnHPChanged?.Invoke();
     }
 
     // sets the status effect
@@ -206,17 +278,17 @@ public class Piece
     {
 
         //prevents status from applying if alredy on
-        if (status != null) return;
+        if (Status != null) return;
 
-        status = ConditionDB.Conditions[conditionID];
-        status?.OnStart?.Invoke(this);
-        statusChanges.Enqueue($"{Base.Name} {status.StartMessage}");
+        Status = ConditionDB.Conditions[conditionID];
+        Status?.OnStart?.Invoke(this);
+        statusChanges.Enqueue($"{Base.Name} {Status.StartMessage}");
         OnStatusChanged?.Invoke();
     }
 
     public void CureStatus()
     {
-        status = null;
+        Status = null;
         OnStatusChanged?.Invoke();
     }
 
@@ -240,7 +312,7 @@ public class Piece
     //returns random ability for enemy
     public Ability GetRandomAbility()
     {
-        var abilitesWithAP = abilities.Where(x => x.AP > 0).ToList();
+        var abilitesWithAP = Abilities.Where(x => x.AP > 0).ToList();
 
         int r = Random.Range(0, abilitesWithAP.Count);
         return abilitesWithAP[r];
@@ -249,9 +321,9 @@ public class Piece
     public bool OnBeforeAbility()
     {
         bool canPreformAbility = true;
-        if (status?.OnBeforeAbility != null)
+        if (Status?.OnBeforeAbility != null)
         {
-            if (!status.OnBeforeAbility(this))
+            if (!Status.OnBeforeAbility(this))
                 canPreformAbility = false;
         }
 
@@ -266,7 +338,7 @@ public class Piece
 
     public void OnAfterTurn()
     {
-        status?.OnAfterTurn?.Invoke(this);
+        Status?.OnAfterTurn?.Invoke(this);
         VolatileStatus?.OnAfterTurn?.Invoke(this);
     }
 
@@ -285,4 +357,15 @@ public class DamageDetails
     public float Crit { get; set; }
     public float TypeWeakness { get; set; }
 
+}
+
+[System.Serializable]
+public class PieceSaveData
+{
+    public string name;
+    public int hp;
+    public int level;
+    public int exp;
+    public ConditionID? statusId;
+    public List<AbilitySaveData> abilities;
 }

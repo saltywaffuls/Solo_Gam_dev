@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,7 @@ public class BattleHud : MonoBehaviour
     [SerializeField] Text levelText;
     [SerializeField] Text statusText;
     [SerializeField] HPBar hpBar;
+    [SerializeField] GameObject expBar;
 
     [SerializeField] Color dotColor;
     [SerializeField] Color sdotColor;
@@ -24,11 +26,18 @@ public class BattleHud : MonoBehaviour
     // shows data of pice in ui
     public void SetData(Piece piece)
     {
+        if (_piece != null)
+        {
+            _piece.OnHPChanged -= UpdateHP;
+            _piece.OnStatusChanged -= SetStatusText;
+        }
+
         _piece = piece;
 
         nameText.text = piece.Base.Name;
-        levelText.text = "lvl" + piece.Level;
+        SetLevel();
         hpBar.SetHP((float)piece.HP / piece.MaxHP);
+        SetExp();
 
         statusColors = new Dictionary<ConditionID, Color>()
         {
@@ -41,31 +50,72 @@ public class BattleHud : MonoBehaviour
 
         SetStatusText();
         _piece.OnStatusChanged += SetStatusText;
+        _piece.OnHPChanged += UpdateHP;
     }
 
     //sets the text for what status
     void SetStatusText()
     {
-        if (_piece.status == null)
+        if (_piece.Status == null)
         {
             statusText.text = "";
         }
         else
         {
-            statusText.text = _piece.status.Id.ToString().ToUpper();
-            statusText.color = statusColors[_piece.status.Id];
+            statusText.text = _piece.Status.Id.ToString().ToUpper();
+            statusText.color = statusColors[_piece.Status.Id];
         }
+    }
+
+    public void SetLevel()
+    {
+        levelText.text = "lvl" + _piece.Level;
+    }
+
+    //updats exp bar
+    public void SetExp()
+    {
+        if (expBar == null) return;
+
+        float nomalizeExp = GetNormalizeExp();
+        expBar.transform.localScale = new Vector3(nomalizeExp, 1, 1);
+
+    }
+
+    public IEnumerator SetExpSmooth(bool reset=false)
+    {
+        if (expBar == null) yield break;
+
+        if (reset)
+            expBar.transform.localScale = new Vector3(0, 1, 1);
+
+        float nomalizeExp = GetNormalizeExp();
+        yield return expBar.transform.DOScaleX(nomalizeExp, 1.5f).WaitForCompletion();
+
+    }
+
+    float GetNormalizeExp()
+    {
+        int currentLevelExp = _piece.Base.GetExpForLevel(_piece.Level);
+        int nextLevelExp = _piece.Base.GetExpForLevel(_piece.Level + 1);
+
+        float normalizeExp = (float)(_piece.Exp - currentLevelExp) / (nextLevelExp - currentLevelExp);
+        return Mathf.Clamp01(normalizeExp);
+    }
+
+    public void UpdateHP()
+    {
+        StartCoroutine(UpdateHPAsync());
     }
 
     // updates HP bar
-    public IEnumerator UpdateHP()
+    public IEnumerator UpdateHPAsync()
     {
-        if (_piece.HPChange)
-        {
             yield return hpBar.SetHPSmooth((float)_piece.HP / _piece.MaxHP);
-            _piece.HPChange = false;
-        }
-       
     }
 
+    public IEnumerator WaitForHPUpdate()
+    {
+        yield return new WaitUntil(() => hpBar.IsUpdating == false);
+    }
 }
