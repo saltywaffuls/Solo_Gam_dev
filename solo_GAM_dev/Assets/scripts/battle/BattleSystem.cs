@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 //defines states
-public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, PartyScreen, AboutToUse, AbilityForget, BattleOver }
+public enum BattleState { Start, ActionSelection, AbilitySelection, RunningTurn, Busy, Inventory, PartyScreen, AboutToUse, AbilityForget, BattleOver }
 public enum BattleAction { Ability, SwitchPiece, Useitem, flee}
 
 public class BattleSystem : MonoBehaviour
@@ -19,6 +19,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] Image playerImage;
     [SerializeField] Image enemyImage;
     [SerializeField] AbilitySelectionUI AbilitySelectionUI;
+    [SerializeField] InventoryUI inventoryUI;
 
     public event Action<bool> OnBattleOver;
 
@@ -73,6 +74,23 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.PartyScreen)
         {
             HandlePartySelection();
+        }
+        else if (state == BattleState.Inventory)
+        {
+            Action onBack = () =>
+            {
+                inventoryUI.gameObject.SetActive(false);
+                state = BattleState.ActionSelection;
+            };
+
+            Action onItemUsed = () =>
+            {
+                state = BattleState.Busy;
+                inventoryUI.gameObject.SetActive(false);
+                StartCoroutine(RunTurns(BattleAction.Useitem));
+            };
+
+            inventoryUI.HandleUpdate(onBack, onItemUsed);
         }
         else if (state == BattleState.AboutToUse)
         {
@@ -175,13 +193,17 @@ public class BattleSystem : MonoBehaviour
         OnBattleOver(won);
     }
 
+    void OpenInventory()
+    {
+        state = BattleState.Inventory;
+        inventoryUI.gameObject.SetActive(true);
+    }
 
     //opens the party select ui
     void OpenPartyUI()
     {
         partyscreen.CalledFrom = state;
         state = BattleState.PartyScreen;
-        partyscreen.SetPartyData(playerParty.Pieces);
         partyscreen.gameObject.SetActive(true);
     }
 
@@ -262,20 +284,25 @@ public class BattleSystem : MonoBehaviour
                 var selectedUnit = partyscreen.SelectedUnit;
                 state = BattleState.Busy;
                 yield return SwitchUnit(selectedUnit);
-
-                //enemy turn ep 24 14:16
-                var enemyAbility = enemyUnit.Piece.GetRandomAbility();
-                  yield return RunAbility(enemyUnit, playerUnit, enemyAbility);
-                  yield return RunAfterTurn(enemyUnit);
-                  if (state == BattleState.BattleOver) yield break;
-                
+            }
+            else if (playerAction == BattleAction.Useitem)
+            {
+                // this handled from item screen,  so do nothing skip tp enemy move
+                dialogBox.EnableActionSelector(false);
             }
             else if(playerAction == BattleAction.flee)
             {
                 yield return TryToEscape();
             }
 
+            //enemy turn ep 24 14:16
+            var enemyAbility = enemyUnit.Piece.GetRandomAbility();
+            yield return RunAbility(enemyUnit, playerUnit, enemyAbility);
+            yield return RunAfterTurn(enemyUnit);
+            if (state == BattleState.BattleOver) yield break;
+
         }
+
         if (state != BattleState.BattleOver)
             ActionSelection();
     }
@@ -288,7 +315,7 @@ public class BattleSystem : MonoBehaviour
         if (!canRunAbility)
         {
             yield return ShowStatusChanges(sourceUnit.Piece);
-            yield return sourceUnit.Hud.UpdateHP();
+            yield return sourceUnit.Hud.WaitForHPUpdate();
             yield break;
         }
         yield return ShowStatusChanges(sourceUnit.Piece);
@@ -311,7 +338,7 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 var damageDetails = targetUnit.Piece.TakeDamage(ability, sourceUnit.Piece);
-                yield return targetUnit.Hud.UpdateHP();
+                yield return targetUnit.Hud.WaitForHPUpdate();
                 yield return ShowDamageDetails(damageDetails);
             }
 
@@ -445,7 +472,7 @@ public class BattleSystem : MonoBehaviour
         //statuses like burn(DOTS) will hurt after a turn
         sourceUnit.Piece.OnAfterTurn();
         yield return ShowStatusChanges(sourceUnit.Piece);
-        yield return sourceUnit.Hud.UpdateHP();
+        yield return sourceUnit.Hud.WaitForHPUpdate();
         if (sourceUnit.Piece.HP <= 0)
         {
             yield return HandlePieceDeath(sourceUnit);
@@ -548,6 +575,7 @@ public class BattleSystem : MonoBehaviour
             else if (currentAction == 1)
             {
                 //inventroy
+                OpenInventory();
             } 
             else if (currentAction == 2)
             {

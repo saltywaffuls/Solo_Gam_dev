@@ -26,6 +26,12 @@ public class BattleHud : MonoBehaviour
     // shows data of pice in ui
     public void SetData(Piece piece)
     {
+        if (_piece != null)
+        {
+            _piece.OnHPChanged -= UpdateHP;
+            _piece.OnStatusChanged -= SetStatusText;
+        }
+
         _piece = piece;
 
         nameText.text = piece.Base.Name;
@@ -44,6 +50,7 @@ public class BattleHud : MonoBehaviour
 
         SetStatusText();
         _piece.OnStatusChanged += SetStatusText;
+        _piece.OnHPChanged += UpdateHP;
     }
 
     //sets the text for what status
@@ -96,15 +103,19 @@ public class BattleHud : MonoBehaviour
         return Mathf.Clamp01(normalizeExp);
     }
 
-    // updates HP bar
-    public IEnumerator UpdateHP()
+    public void UpdateHP()
     {
-        if (_piece.HPChange)
-        {
-            yield return hpBar.SetHPSmooth((float)_piece.HP / _piece.MaxHP);
-            _piece.HPChange = false;
-        }
-       
+        StartCoroutine(UpdateHPAsync());
     }
 
+    // updates HP bar
+    public IEnumerator UpdateHPAsync()
+    {
+            yield return hpBar.SetHPSmooth((float)_piece.HP / _piece.MaxHP);
+    }
+
+    public IEnumerator WaitForHPUpdate()
+    {
+        yield return new WaitUntil(() => hpBar.IsUpdating == false);
+    }
 }

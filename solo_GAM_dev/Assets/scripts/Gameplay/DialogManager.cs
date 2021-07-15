@@ -49,6 +49,21 @@ public class DialogManager : MonoBehaviour
         }
     }
 
+    public IEnumerator ShowDialogText(string text, bool WaitForInput=true)
+    {
+        IsShowing = true;
+
+        dialgBox.SetActive(true);
+        yield return TypeDialog(text);
+        if (WaitForInput)
+        {
+            new WaitUntil(() => Input.GetKeyDown(KeyCode.Z));
+        }
+
+        dialgBox.SetActive(false);
+        IsShowing = false;
+    }
+
     // ep 27 21:20 fixed ep 30 2:31
     public IEnumerator ShowDialog(Dialog dialog, Action onfinished = null)
     {

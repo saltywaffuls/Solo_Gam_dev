@@ -12,6 +12,7 @@ public class PartyScreen : MonoBehaviour
 
     PartyUI[] rosterSlots;
     List<Piece> pieces;
+    PieceParty party;
 
     int selection = 0;
     public Piece SelectedUnit => pieces[selection];
@@ -24,17 +25,22 @@ public class PartyScreen : MonoBehaviour
     public void Init()
     {
         rosterSlots = GetComponentsInChildren<PartyUI>();
+
+        party = PieceParty.GetPlayerParty();
+        SetPartyData();
+
+        party.onUpdated += SetPartyData;
     }
 
-    public void SetPartyData(List<Piece> pieces)
+    public void SetPartyData()
     {
 
-        this.pieces = pieces;
+        pieces = party.Pieces;
 
         for (int i = 0; i < rosterSlots.Length; i++)
         {
             if (i < pieces.Count)
-                rosterSlots[i].SetData(pieces[i]);
+                rosterSlots[i].Init(pieces[i]);
             else
                 rosterSlots[i].gameObject.SetActive(false);
         }

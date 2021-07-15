@@ -20,4 +20,17 @@ public class RecoveryItem : ItemBase
     [Header("rez")]
     [SerializeField] bool revive;
     [SerializeField] bool maxRevive;
+
+    public override bool Use(Piece piece)
+    {
+        if(hpAmount > 0)
+        {
+            if (piece.HP == piece.MaxHP)
+                return false;
+
+            piece.IecreaseHP(hpAmount);
+        }
+
+        return true;
+    }
 }

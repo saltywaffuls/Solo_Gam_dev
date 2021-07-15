@@ -283,6 +283,14 @@ MonoBehaviour:
     count: 5
   - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
     count: 5
+  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+    count: 2
+  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+    count: 5
+  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+    count: 5
+  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+    count: 34
 --- !u!50 &5338588268001335839
 Rigidbody2D:
   serializedVersion: 4

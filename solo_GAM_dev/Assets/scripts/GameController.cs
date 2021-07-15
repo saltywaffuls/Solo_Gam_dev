@@ -32,6 +32,12 @@ public class GameController : MonoBehaviour
 
         menuController = GetComponent<MenuController>();
 
+        // Disables Mouse
+        /*
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        */
+
         PieceDB.Init();
         AbilityDB.Init();
         ConditionDB.Init();
@@ -195,7 +201,6 @@ public class GameController : MonoBehaviour
         {
             //piece
             partyScreen.gameObject.SetActive(true);
-            partyScreen.SetPartyData(playerController.GetComponent<PieceParty>().Pieces);
             state = GameState.PartyScreen;
         }
         else if (selectedItem == 1)
