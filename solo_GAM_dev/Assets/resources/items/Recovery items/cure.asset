@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 18f8157372516524fa52eb2764498c43, type: 3}
-  m_Name: maxPotion
+  m_Name: cure
   m_EditorClassIdentifier: 
-  name: ' max HP pot'
-  description: Full Heal
+  name: cure
+  description: remoevs all status
   icon: {fileID: 21300000, guid: 8396e2f3a48d02a4ab098463d2dbbb9e, type: 3}
-  hpAmount: 20
-  resotoreMaxHP: 1
+  hpAmount: 0
+  resotoreMaxHP: 0
   apAmount: 0
   resotoreMaxAP: 0
   status: 0
-  recoverAllStatus: 0
+  recoverAllStatus: 1
   revive: 0
   maxRevive: 0

@@ -31,6 +31,11 @@ public class Ability
         };
         return saveData;
     }
+
+    public void IncreasAP( int amount)
+    {
+        AP = Mathf.Clamp(AP + amount, 0, Base.Ap);
+    }
 }
 
 [System.Serializable]

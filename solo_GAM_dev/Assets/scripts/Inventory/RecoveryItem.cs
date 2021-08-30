@@ -23,12 +23,70 @@ public class RecoveryItem : ItemBase
 
     public override bool Use(Piece piece)
     {
-        if(hpAmount > 0)
+
+        // revieves piece
+        if (revive || maxRevive)
+        {
+            if (piece.HP > 0)
+                return false;
+
+            if (revive)
+                piece.IecreaseHP(piece.MaxHP / 2);
+            else if (maxRevive)
+                piece.IecreaseHP(piece.MaxHP);
+
+            piece.CureStatus();
+
+            return true;
+        }
+
+        // no other items can be used on dead unit
+        if (piece.HP == 0)
+            return false;
+
+        //resores HP and or maxHp
+        if(resotoreMaxHP || hpAmount > 0)
         {
             if (piece.HP == piece.MaxHP)
                 return false;
 
-            piece.IecreaseHP(hpAmount);
+            if (resotoreMaxHP)
+                piece.IecreaseHP(piece.MaxHP);
+            else
+                piece.IecreaseHP(hpAmount);
+        }
+
+        //recover status
+        if(recoverAllStatus || status != ConditionID.none)
+        {
+            if (piece.Status == null && piece.VolatileStatus != null)
+                return false;
+
+
+            if (recoverAllStatus)
+            {
+                piece.CureStatus();
+                piece.CureVolatileStatus();
+            }
+            else
+            {
+                if (piece.Status.Id == status)
+                    piece.CureStatus();
+                else if (piece.VolatileStatus.Id == status)
+                    piece.CureVolatileStatus();
+                else
+                    return false;
+            }
+        }
+
+        //restore AP
+        if (resotoreMaxAP)
+        {
+            piece.Abilities.ForEach(m => m.IncreasAP(m.Base.Ap));
+        }
+        else if (apAmount > 0)
+        {
+            piece.Abilities.ForEach(m => m.IncreasAP(apAmount));
         }
 
         return true;

@@ -283,14 +283,22 @@ MonoBehaviour:
     count: 5
   - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
     count: 5
-  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+  - item: {fileID: 11400000, guid: db35a363ed2bb174ab6936960742c15d, type: 2}
     count: 2
-  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+  - item: {fileID: 11400000, guid: b76a3edde53fd0f43b2d41fef6b8d14c, type: 2}
     count: 5
-  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+  - item: {fileID: 11400000, guid: d483b0f824b910244883197cecaeffa5, type: 2}
     count: 5
-  - item: {fileID: 11400000, guid: c014d7f494bf37d40b8f34fffccdb4dd, type: 2}
+  - item: {fileID: 11400000, guid: 3a294d9ab658d864ea1ad405a0ced0d5, type: 2}
     count: 34
+  - item: {fileID: 11400000, guid: 0a54a6fed5560cb42b3b5b0dabdfa170, type: 2}
+    count: 15
+  keySlots:
+  - item: {fileID: 11400000, guid: 4c9f7206ab41d5041bd057454f12b156, type: 2}
+    count: 7
+  - item: {fileID: 11400000, guid: 18810fa6277c34d45ab33d0843a25dd0, type: 2}
+    count: 3
+  bookSlots: []
 --- !u!50 &5338588268001335839
 Rigidbody2D:
   serializedVersion: 4

@@ -7,10 +7,27 @@ using UnityEngine;
 public class Inventory : MonoBehaviour
 {
     [SerializeField] List<ItemSlot> slots;
+    [SerializeField] List<ItemSlot> keySlots;
+    [SerializeField] List<ItemSlot> bookSlots;
+
+    List<List<ItemSlot>> allSlots;
 
     public event Action onUpdated;
 
-    public List<ItemSlot> Slots => slots;
+    private void Awake()
+    {
+        allSlots = new List<List<ItemSlot>>() { slots, keySlots, bookSlots };
+    }
+
+    public static List<string> ItemCategories { get; set; } = new List<string>()
+    {
+        "ITEMS", "KEY ITEMS", "BOOKS"
+    };
+
+    public List<ItemSlot> GetSlotByCategory(int categoryIndex)
+    {
+        return allSlots[categoryIndex];
+    }
 
     public ItemBase UseItem(int itemIndex, Piece selectedPiece)
     {
