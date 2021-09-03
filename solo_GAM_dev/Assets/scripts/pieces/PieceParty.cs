@@ -23,13 +23,17 @@ public class PieceParty : MonoBehaviour
         }
     }
 
-
-    private void Start()
+    private void Awake()
     {
         foreach (var piece in pieces)
         {
             piece.Init();
         }
+    }
+
+    private void Start()
+    {
+        
     }
 
 

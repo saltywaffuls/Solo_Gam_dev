@@ -59,7 +59,7 @@ public class RecoveryItem : ItemBase
         //recover status
         if(recoverAllStatus || status != ConditionID.none)
         {
-            if (piece.Status == null && piece.VolatileStatus != null)
+            if (piece.Status == null && piece.VolatileStatus == null)
                 return false;
 
 

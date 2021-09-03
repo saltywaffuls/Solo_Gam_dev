@@ -29,25 +29,29 @@ public class Inventory : MonoBehaviour
         return allSlots[categoryIndex];
     }
 
-    public ItemBase UseItem(int itemIndex, Piece selectedPiece)
+    public ItemBase UseItem(int itemIndex, Piece selectedPiece, int selectedCategory)
     {
-        var item = slots[itemIndex].Item;
+        var currentSlots = GetSlotByCategory(selectedCategory);
+
+        var item = currentSlots[itemIndex].Item;
         bool itemUsed = item.Use(selectedPiece);
         if (itemUsed)
         {
-            RemoveItem(item);
+            RemoveItem(item, selectedCategory);
             return item;
         }
 
         return null;
     }
 
-    public void RemoveItem(ItemBase item)
+    public void RemoveItem(ItemBase item, int category)
     {
-        var itemSlot = slots.First(slot => slot.Item == item);
+        var currentSlots = GetSlotByCategory(category);
+
+        var itemSlot = currentSlots.First(slot => slot.Item == item);
         itemSlot.Count--;
         if (itemSlot.Count == 0)
-            slots.Remove(itemSlot);
+            currentSlots.Remove(itemSlot);
 
         onUpdated?.Invoke();
     }

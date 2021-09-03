@@ -128,7 +128,7 @@ public class InventoryUI : MonoBehaviour
     {
         state = InventoryUIState.Busy;
 
-        var usedItem = inventory.UseItem(selectedItem, partyScreen.SelectedUnit);
+        var usedItem = inventory.UseItem(selectedItem, partyScreen.SelectedUnit, selectedCategory);
         if(usedItem != null)
         {
             yield return DialogManager.Instance.ShowDialogText($"A {usedItem.Name} Has Been Used");
@@ -146,6 +146,8 @@ public class InventoryUI : MonoBehaviour
     {
         var slots = inventory.GetSlotByCategory(selectedCategory);
 
+        selectedItem = Mathf.Clamp(selectedItem, 0, slots.Count - 1);
+
         for (int i = 0; i < slotUIList.Count; i++)
         {
             if (i == selectedItem)
@@ -153,8 +155,6 @@ public class InventoryUI : MonoBehaviour
             else
                 slotUIList[i].NameText.color = Color.black;
         }
-
-        selectedItem = Mathf.Clamp(selectedItem, 0, slots.Count - 1);
 
         if (slots.Count > 0)
         {

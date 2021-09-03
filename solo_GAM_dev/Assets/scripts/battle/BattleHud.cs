@@ -118,4 +118,13 @@ public class BattleHud : MonoBehaviour
     {
         yield return new WaitUntil(() => hpBar.IsUpdating == false);
     }
+
+    public void ClearData()
+    {
+        if (_piece != null)
+        {
+            _piece.OnHPChanged -= UpdateHP;
+            _piece.OnStatusChanged -= SetStatusText;
+        }
+    }
 }

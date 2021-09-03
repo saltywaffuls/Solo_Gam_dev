@@ -11,6 +11,16 @@ public class Piece
     [SerializeField] PieceBase _base;
     [SerializeField] int level;
 
+    /*
+    public Piece(PieceBase pBase, int pLevel)
+    {
+        _base = pBase;
+        level = pLevel;
+
+        Init();
+    }
+    */
+
    public PieceBase Base 
     {
         get
